@@ -272,6 +272,7 @@ export function Reader({
       onPressExternalLink={onPressExternalLink}
       enableSelection={enableSelection}
       menuItems={menuItems}
+      disableTextHighlightMenu={rest?.disableTextHighlightMenu}
       manager={manager}
       flow={flow}
       snap={snap}

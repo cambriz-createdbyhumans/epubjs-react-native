@@ -68,6 +68,7 @@ export function View({
   },
   onPressExternalLink,
   menuItems,
+  disableTextHighlightMenu,
   onAddAnnotation = () => {},
   onChangeAnnotations = () => {},
   initialAnnotations,
@@ -559,6 +560,8 @@ export function View({
         javaScriptEnabled
         originWhitelist={['*']}
         scrollEnabled={false}
+        // @ts-expect-error Prop provided by forked react-native-webview
+        disableTextHighlightMenu={!!disableTextHighlightMenu}
         mixedContentMode="compatibility"
         onMessage={onMessage}
         menuItems={menuItems?.map((item, key) => ({

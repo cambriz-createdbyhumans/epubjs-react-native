@@ -205,6 +205,8 @@ type FileSystem = {
 };
 
 export interface ReaderProps {
+  /** Disable the iOS text highlight context menu in the WebView. */
+  disableTextHighlightMenu?: boolean;
   /**
    * Can be a `base64`, `epub`, `opf` or `binary`.
    * @param {object} src
