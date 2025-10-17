@@ -18,6 +18,7 @@ interface Props {
 	onSwipeUp: () => void
 	onSwipeDown: () => void
 	onLongPress: () => void
+	onPressOut?: () => void
 	children: React.ReactNode
 }
 
@@ -31,6 +32,7 @@ export function GestureHandler({
 	onSwipeUp,
 	onSwipeDown,
 	onLongPress,
+	onPressOut = () => {},
 	children,
 }: Props) {
 	const singleTap = Gesture.Tap().runOnJS(true).maxDuration(250).onStart(onSingleTap)
@@ -41,7 +43,10 @@ export function GestureHandler({
 		.numberOfTaps(2)
 		.onStart(onDoubleTap)
 
-	const longPress = Gesture.LongPress().runOnJS(true).onStart(onLongPress)
+	const longPress = Gesture.LongPress()
+		.runOnJS(true)
+		.onStart(onLongPress)
+		.onFinalize(() => onPressOut())
 
 	const swipeLeft = Gesture.Fling()
 		.runOnJS(true)
@@ -93,6 +98,7 @@ export function GestureHandler({
 						style={{ width, height }}
 						onPress={() => Platform.OS === "ios" && handleDoubleTap()}
 						onLongPress={() => Platform.OS === "ios" && onLongPress()}
+						onPressOut={() => Platform.OS === "ios" && onPressOut()}
 					>
 						{children}
 					</TouchableWithoutFeedback>
