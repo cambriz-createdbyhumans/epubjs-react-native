@@ -342,6 +342,10 @@ export interface ReaderProps {
    * Called when book is long pressed
    */
   onLongPress?: () => void;
+  /**
+   * Called when a press interaction ends
+   */
+  onPressOut?: () => void;
   width?: DimensionValue;
   height?: DimensionValue;
   /**
