@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import { DimensionValue, I18nManager, Platform, View } from "react-native"
 import {
 	GestureHandlerRootView,
@@ -18,6 +18,7 @@ interface Props {
 	onSwipeUp: () => void
 	onSwipeDown: () => void
 	onLongPress: () => void
+	onLongPressEnd?: () => void
 	children: React.ReactNode
 }
 
@@ -31,8 +32,25 @@ export function GestureHandler({
 	onSwipeUp,
 	onSwipeDown,
 	onLongPress,
+	onLongPressEnd = () => {},
 	children,
 }: Props) {
+	const didLongPressRef = useRef(false)
+
+	const handleLongPressStart = () => {
+		if (!didLongPressRef.current) {
+			didLongPressRef.current = true
+			onLongPress()
+		}
+	}
+
+	const handleLongPressEnd = () => {
+		if (didLongPressRef.current) {
+			onLongPressEnd()
+			didLongPressRef.current = false
+		}
+	}
+
 	const singleTap = Gesture.Tap().runOnJS(true).maxDuration(250).onStart(onSingleTap)
 
 	const doubleTap = Gesture.Tap()
@@ -41,7 +59,11 @@ export function GestureHandler({
 		.numberOfTaps(2)
 		.onStart(onDoubleTap)
 
-	const longPress = Gesture.LongPress().runOnJS(true).onStart(onLongPress)
+	const longPress = Gesture.LongPress()
+		.runOnJS(true)
+		.onStart(handleLongPressStart)
+		.onEnd(handleLongPressEnd)
+		.onFinalize(handleLongPressEnd)
 
 	const swipeLeft = Gesture.Fling()
 		.runOnJS(true)
@@ -92,7 +114,8 @@ export function GestureHandler({
 					<TouchableWithoutFeedback
 						style={{ width, height }}
 						onPress={() => Platform.OS === "ios" && handleDoubleTap()}
-						onLongPress={() => Platform.OS === "ios" && onLongPress()}
+						onLongPress={() => Platform.OS === "ios" && handleLongPressStart()}
+						onPressOut={() => Platform.OS === "ios" && handleLongPressEnd()}
 					>
 						{children}
 					</TouchableWithoutFeedback>
