@@ -46,6 +46,7 @@ export function View({
   onDoublePress = () => {},
   onDoubleTap = () => {},
   onLongPress = () => {},
+  onLongPressEnd = () => {},
   width,
   height,
   initialLocation,
@@ -514,6 +515,7 @@ export function View({
         onDoubleTap();
       }}
       onLongPress={onLongPress}
+      onLongPressEnd={onLongPressEnd}
       onSwipeLeft={() => {
         if (enableSwipe) {
           goNext({
