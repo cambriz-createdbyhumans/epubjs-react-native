@@ -121,6 +121,8 @@ export default function App() {
 | `onOrientationChange`        | `function`    | Called when screen orientation change is detected. Optional. |
 | `onPress`                    | `function`    | Called when the book was pressed. Optional.                  |
 | `onDoublePress`              | `function`    | Called when the book was double pressed. Optional.           |
+| `onLongPress`                | `function`    | Called when the book is long pressed. Optional.              |
+| `onLongPressEnd`             | `function`    | Called when the long press gesture ends. Optional.           |
 | `onBeginning`                | `function`    | Called when the book is on the homepage. Optional.           |
 | `onFinish`                   | `function`    | Called when the book is on the final page. Optional.         |
 | `onLayout`                   | `function`    | Called when book layout is change. Optional.                 |

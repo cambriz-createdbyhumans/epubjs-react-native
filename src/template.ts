@@ -289,6 +289,102 @@ export default `
         }));
       });
 
+      var longPressDelay = 350;
+      var longPressMoveThreshold = 10;
+      var registerLongPressListeners = function (contents) {
+        if (!contents || !contents.document || contents.document.__cbhLongPressAttached) {
+          return;
+        }
+        contents.document.__cbhLongPressAttached = true;
+        var doc = contents.document;
+        var longPressTimer = null;
+        var isLongPressActive = false;
+        var startPoint = {
+          x: 0,
+          y: 0
+        };
+        var selectionChanged = false;
+        var clearTimer = function () {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        };
+        var endLongPress = function () {
+          clearTimer();
+          if (isLongPressActive || selectionChanged) {
+            reactNativeWebview.postMessage(JSON.stringify({
+              type: 'onLongPressEnd'
+            }));
+          }
+          isLongPressActive = false;
+          selectionChanged = false;
+        };
+        var startTimer = function () {
+          clearTimer();
+          longPressTimer = setTimeout(function () {
+            isLongPressActive = true;
+          }, longPressDelay);
+        };
+        var capturePoint = function (event) {
+          if (event.type === 'touchstart' || event.type === 'touchmove') {
+            if (!event.touches || event.touches.length !== 1) {
+              return null;
+            }
+            return {
+              x: event.touches[0].clientX,
+              y: event.touches[0].clientY
+            };
+          }
+          return {
+            x: event.clientX,
+            y: event.clientY
+          };
+        };
+        var handleStart = function (event) {
+          if (event.type === 'mousedown' && event.button !== 0) {
+            return;
+          }
+          var point = capturePoint(event);
+          if (!point) {
+            return;
+          }
+          startPoint = point;
+          isLongPressActive = false;
+          selectionChanged = false;
+          startTimer();
+        };
+        var handleMove = function (event) {
+          if (!longPressTimer) {
+            return;
+          }
+          var point = capturePoint(event);
+          if (!point) {
+            return;
+          }
+          var deltaX = Math.abs(point.x - startPoint.x);
+          var deltaY = Math.abs(point.y - startPoint.y);
+          if (deltaX > longPressMoveThreshold || deltaY > longPressMoveThreshold) {
+            clearTimer();
+          }
+        };
+        doc.addEventListener('selectionchange', function () {
+          selectionChanged = true;
+        }, true);
+        doc.addEventListener('touchstart', handleStart, true);
+        doc.addEventListener('touchmove', handleMove, true);
+        doc.addEventListener('touchend', endLongPress, true);
+        doc.addEventListener('touchcancel', endLongPress, true);
+        doc.addEventListener('mousedown', handleStart, true);
+        doc.addEventListener('mousemove', handleMove, true);
+        doc.addEventListener('mouseup', endLongPress, true);
+        doc.addEventListener('mouseleave', endLongPress, true);
+      };
+
+      rendition.hooks.content.register(function (contents) {
+        registerLongPressListeners(contents);
+      });
+
       rendition.on("layout", function (layout) {
         reactNativeWebview.postMessage(JSON.stringify({
           type: 'onLayout',
