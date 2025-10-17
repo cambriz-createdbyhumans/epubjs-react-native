@@ -342,10 +342,6 @@ export interface ReaderProps {
    * Called when book is long pressed
    */
   onLongPress?: () => void;
-  /**
-   * Called when the long press gesture ends (finger lifted after a recognized long press)
-   */
-  onLongPressEnd?: () => void;
   width?: DimensionValue;
   height?: DimensionValue;
   /**
