@@ -1,7 +1,7 @@
 {
-  "name": "@epubjs-react-native/core",
-  "version": "1.4.7",
-  "description": "A digital book reader in .opf .epub format for react native using epub.js library inside a webview.",
+  "name": "@repo/epubjs-react-native",
+  "version": "0.0.0",
+  "description": "CbH's clone of epubjs-react-native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/index.d.ts",
