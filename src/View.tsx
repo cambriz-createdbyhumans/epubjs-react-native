@@ -39,6 +39,7 @@ export function View({
   onDoublePress = () => {},
   onDoubleTap = () => {},
   onLongPress = () => {},
+  onPressOut = () => {},
   width,
   height,
   initialLocation,
@@ -61,6 +62,7 @@ export function View({
   },
   onPressExternalLink,
   menuItems,
+  disableTextHighlightMenu,
   onAddAnnotation = () => {},
   onChangeAnnotations = () => {},
   initialAnnotations,
@@ -426,6 +428,7 @@ export function View({
         onDoubleTap();
       }}
       onLongPress={onLongPress}
+      onPressOut={onPressOut}
       onSwipeLeft={() => {
         if (enableSwipe) {
           goNext({
@@ -472,6 +475,7 @@ export function View({
         javaScriptEnabled
         originWhitelist={['*']}
         scrollEnabled={false}
+        disableTextHighlightMenu={disableTextHighlightMenu}
         mixedContentMode="compatibility"
         onMessage={onMessage}
         menuItems={menuItems?.map((item, key) => ({
