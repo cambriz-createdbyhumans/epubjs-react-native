@@ -5,7 +5,6 @@
   "main": "src/index.tsx",
   "module": "src/index.tsx",
   "types": "src/index.ts",
-  "react-native": "src/index.tsx",
   "files": [
     "src"
   ],
