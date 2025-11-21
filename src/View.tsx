@@ -370,8 +370,6 @@ export function View({
   };
 
   const handleNativeSingleTap = (event?: WebViewSingleTapEvent) => {
-    console.log("Handling JS Single Tap");
-    console.log(event);
     handleResolvedSingleTap();
   };
   const handleOnCustomMenuSelection = (event: {
