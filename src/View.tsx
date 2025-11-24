@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Dimensions, View as RNView } from 'react-native';
+import { Dimensions, Platform, View as RNView } from 'react-native';
 import { WebView } from 'react-native-webview';
 import type {
   ShouldStartLoadRequest,
   WebViewMessageEvent,
+  WebViewSingleTapEvent,
 } from 'react-native-webview/lib/WebViewTypes';
 import { defaultTheme as initialTheme, ReaderContext } from './context';
 import type { Bookmark, ReaderProps } from './types';
@@ -361,6 +362,16 @@ export function View({
     return () => {};
   };
 
+  const isNativeSingleTapAvailable = Platform.OS === 'ios';
+
+  const handleResolvedSingleTap = () => {
+    onPress();
+    onSingleTap();
+  };
+
+  const handleNativeSingleTap = (event?: WebViewSingleTapEvent) => {
+    handleResolvedSingleTap();
+  };
   const handleOnCustomMenuSelection = (event: {
     nativeEvent: {
       label: string;
@@ -418,8 +429,9 @@ export function View({
       width={width}
       height={height}
       onSingleTap={() => {
-        onPress();
-        onSingleTap();
+        if (!isNativeSingleTapAvailable) {
+          handleNativeSingleTap();
+        }
       }}
       onDoubleTap={() => {
         onDoublePress();
@@ -497,6 +509,7 @@ export function View({
           backgroundColor: theme.body.background,
           height,
         }}
+        onSingleTap={isNativeSingleTapAvailable ? handleNativeSingleTap : undefined}
       />
     </GestureHandler>
   );

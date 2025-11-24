@@ -18,10 +18,12 @@
     "epub-reader",
     "epubjs"
   ],
+  "dependencies": {
+    "react-native-webview": "file:../react-native-webview"
+  },
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "react-native-gesture-handler": "*",
-    "react-native-webview": "*"
+    "react-native-gesture-handler": "*"
   }
 }
