@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Dimensions, Platform, View as RNView } from 'react-native';
 import { WebView } from 'react-native-webview';
 import type {
@@ -78,6 +84,7 @@ export function View({
   keepScrollOffsetOnLocationChange,
   flow,
   onChangeSection = () => {},
+  contentInserts = [],
 }: ViewProps) {
   const {
     registerBook,
@@ -112,6 +119,26 @@ export function View({
     setFlow,
   } = useContext(ReaderContext);
   const book = useRef<WebView>(null);
+  const sendContentInsertSync = useCallback(
+    (inserts: ReaderProps['contentInserts']) => {
+      if (!book.current) {
+        return;
+      }
+      const payload = JSON.stringify({
+        type: 'contentInsertSync',
+        inserts,
+      });
+      book.current.injectJavaScript(`
+        try {
+          window.__contentInsertBridge && window.__contentInsertBridge(${payload});
+        } catch (error) {
+          console.log('Failed to sync content inserts', error);
+        }
+        true;
+      `);
+    },
+    []
+  );
   const [selectedText, setSelectedText] = useState<{
     cfiRange: string;
     cfiRangeText: string;
@@ -126,6 +153,13 @@ export function View({
       getInjectionJavascriptFn(book.current.injectJavaScript);
     }
   }, [getInjectionJavascriptFn]);
+
+  useEffect(() => {
+    if (!Array.isArray(contentInserts)) {
+      return;
+    }
+    sendContentInsertSync(contentInserts);
+  }, [contentInserts, sendContentInsertSync]);
 
   const handleChangeIsBookmarked = (
     items: Bookmark[],
@@ -161,6 +195,7 @@ export function View({
       setIsRendering(true);
 
       changeTheme(defaultTheme);
+      sendContentInsertSync(contentInserts);
 
       return onStarted();
     }

@@ -1,5 +1,12 @@
 import { DimensionValue, ViewStyle } from 'react-native';
 
+export type ContentInsert = {
+  targetId: string;
+  contentId: string;
+  contentHtml?: string;
+  contentJavascript?: string;
+};
+
 export type PaginateOptions = {
   keepScrollOffset?: boolean;
 };
@@ -496,4 +503,5 @@ export interface ReaderProps {
    * Default is 1600
    */
   charactersPerLocation?: number;
+  contentInserts?: ContentInsert[];
 }

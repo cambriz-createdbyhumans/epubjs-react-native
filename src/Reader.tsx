@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { LoadingFile } from './utils/LoadingFile';
 import type { ReaderProps } from './types';
@@ -19,6 +19,7 @@ export function Reader({
   height = '100%',
   defaultTheme = initialTheme,
   initialLocations,
+  contentInserts = [],
   allowScriptedContent = Platform.OS === 'ios',
   onPressExternalLink,
   renderLoadingFileComponent = (props) => (
@@ -51,6 +52,7 @@ export function Reader({
   const [template, setTemplate] = useState<string | null>(null);
   const [templateUrl, setTemplateUrl] = useState<string | null>(null);
   const [allowedUris, setAllowedUris] = useState<string | null>(null);
+  const initialContentInsertsRef = useRef(contentInserts);
 
   useEffect(() => {
     (async () => {
@@ -103,6 +105,7 @@ export function Reader({
                 spread,
                 fullsize,
                 charactersPerLocation,
+                contentInserts: initialContentInsertsRef.current,
               })
             );
 
@@ -125,6 +128,7 @@ export function Reader({
                 spread,
                 fullsize,
                 charactersPerLocation,
+                contentInserts: initialContentInsertsRef.current,
               })
             );
 
@@ -157,6 +161,7 @@ export function Reader({
                 spread,
                 fullsize,
                 charactersPerLocation,
+                contentInserts: initialContentInsertsRef.current,
               })
             );
 
@@ -185,6 +190,7 @@ export function Reader({
                 spread,
                 fullsize,
                 charactersPerLocation,
+                contentInserts: initialContentInsertsRef.current,
               })
             );
 
@@ -258,6 +264,7 @@ export function Reader({
       manager={manager}
       flow={flow}
       snap={snap}
+      contentInserts={contentInserts}
       {...rest}
     />
   );
