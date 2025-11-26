@@ -151,6 +151,7 @@ export default function App() {
 | `waitForLocationsReady`            | `boolean`                                                          | only render book after locations generated                                                                                                                                                        |
 | `keepScrollOffsetOnLocationChange` | `boolean`                                                          | Prevents scroll top when change location. Works with `scrolled-doc` flow.                                                                                                                         |
 | `charactersPerLocation`            | `number`                                                           | Default is 1600                                                                                                                                                                                   |
+| `contentInserts`                   | `array`                                                            | Inject HTML/JS snippets into the ebook. Each item: `{ targetId, contentId, contentHtml?, contentJavascript? }`. Runtime updates are synced without reloading the WebView.                                                               |
 
 ## Hooks
 
