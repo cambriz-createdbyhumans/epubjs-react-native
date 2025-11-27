@@ -60,13 +60,6 @@ export default `
       window.__contentInsertBridge = message => {
         try {
           const parsed = typeof message === 'string' ? JSON.parse(message) : message;
-          if (parsed?.type === 'contentInsertAdd' && Array.isArray(parsed.inserts)) {
-            parsed.inserts.forEach(insert => {
-              runtimeContentInserts.push(insert);
-            });
-            contentRendererRegistry.forEach(renderer => renderer(parsed.inserts));
-            return;
-          }
           if (parsed?.type === 'contentInsertSync' && Array.isArray(parsed.inserts)) {
             runtimeContentInserts.length = 0;
             parsed.inserts.forEach(insert => runtimeContentInserts.push(insert));
@@ -163,22 +156,13 @@ export default `
                       buttonEl.addEventListener('click', event => {
                           event.stopPropagation();
                           event.preventDefault();
-                          const actionId = buttonEl.getAttribute('data-content-action-id') || buttonEl.getAttribute('data-action-id') || null;
-                          const url = buttonEl.getAttribute('data-content-action-url') || buttonEl.getAttribute('data-url') || buttonEl.getAttribute('href') || null;
+                          const actionId = buttonEl.getAttribute('data-content-action-id') || null;
                           emitContentInsertEvent({
                               type: 'contentInsertButtonPress',
-                              contentId: buttonEl.getAttribute('data-content-id') || insert.contentId,
-                              targetId: buttonEl.getAttribute('data-target-id') || insert.targetId,
-                              actionId: actionId,
-                              url: url
+                              contentId: insert.contentId,
+                              targetId: insert.targetId,
+                              actionId: actionId
                           });
-                          if (url) {
-                              try {
-                                  window.open(url, '_blank');
-                              } catch (error) {
-                                  console.log('[ContentInsertEvent] failed to open html button url', error);
-                              }
-                          }
                       });
                   });
               };
@@ -212,11 +196,6 @@ export default `
                   const wrapper = doc.createElement('section');
                   wrapper.setAttribute('data-epub-insert', insert.targetId);
                   wrapper.setAttribute('data-epub-insert-id', insert.contentId);
-                  wrapper.style.marginTop = '16px';
-                  wrapper.style.padding = '16px';
-                  wrapper.style.backgroundColor = '#f8fafc';
-                  wrapper.style.borderRadius = '8px';
-                  wrapper.style.border = '1px solid rgba(15, 23, 42, 0.1)';
 
                   const tempContainer = doc.createElement('div');
                   tempContainer.innerHTML = insert.contentHtml;
