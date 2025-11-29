@@ -193,6 +193,15 @@ export default `
                       return;
                   }
 
+                  if (insert.contentStyle) {
+                      try {
+                          const current = target.getAttribute('style') || '';
+                          target.setAttribute('style', (current + ' ' + insert.contentStyle).trim());
+                      } catch (error) {
+                          console.log('[ContentInsertEvent] failed to apply target style', error);
+                      }
+                  }
+
                   const wrapper = doc.createElement('section');
                   wrapper.setAttribute('data-epub-insert', insert.targetId);
                   wrapper.setAttribute('data-epub-insert-id', insert.contentId);

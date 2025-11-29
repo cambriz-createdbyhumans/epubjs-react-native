@@ -5,6 +5,7 @@ export type ContentInsert = {
   contentId: string;
   contentHtml?: string;
   contentJavascript?: string;
+  contentStyle?: string;
 };
 
 export type PaginateOptions = {
