@@ -147,26 +147,6 @@ export default `
               const doc = contents.document;
               const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
 
-              const attachHtmlButtonListeners = (root, insert) => {
-                  if (!root || !root.querySelectorAll) {
-                      return;
-                  }
-                  const htmlButtons = root.querySelectorAll('[data-content-insert-button]');
-                  htmlButtons.forEach(buttonEl => {
-                      buttonEl.addEventListener('click', event => {
-                          event.stopPropagation();
-                          event.preventDefault();
-                          const actionId = buttonEl.getAttribute('data-content-action-id') || null;
-                          emitContentInsertEvent({
-                              type: 'contentInsertButtonPress',
-                              contentId: insert.contentId,
-                              targetId: insert.targetId,
-                              actionId: actionId
-                          });
-                      });
-                  });
-              };
-
               const runInsertScript = (insert, wrapper) => {
                   if (!insert?.contentJavascript) {
                       return;
@@ -212,9 +192,6 @@ export default `
                       const child = tempContainer.firstChild;
                       tempContainer.removeChild(child);
                       wrapper.appendChild(child);
-                  }
-                  if (!insert.contentJavascript) {
-                      attachHtmlButtonListeners(wrapper, insert);
                   }
 
                   target.parentNode.insertBefore(wrapper, target.nextSibling);
