@@ -164,10 +164,7 @@ export default `
                       return;
                   }
 
-                  let target = doc.getElementById(insert.targetId);
-                  if (target && target.parentNode) {
-                      target = target.parentNode;
-                  }
+                  const target = doc.getElementById(insert.targetId);
 
                   if (!target || !target.parentNode) {
                       return;
