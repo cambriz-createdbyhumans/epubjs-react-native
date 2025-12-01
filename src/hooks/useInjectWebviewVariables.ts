@@ -1,5 +1,12 @@
 import { useCallback } from 'react';
-import type { Flow, Manager, Spread, Theme, ePubCfi } from '../types';
+import type {
+  ContentInsert,
+  Flow,
+  Manager,
+  Spread,
+  Theme,
+  ePubCfi,
+} from '../types';
 import template from '../template';
 import type { SourceType } from '../utils/enums/source-type.enum';
 
@@ -21,6 +28,7 @@ export function useInjectWebViewVariables() {
       spread,
       fullsize,
       charactersPerLocation = 1600,
+      contentInserts = [],
     }: {
       jszip: string;
       epubjs: string;
@@ -37,6 +45,7 @@ export function useInjectWebViewVariables() {
       spread?: Spread;
       fullsize?: boolean;
       charactersPerLocation?: number;
+      contentInserts?: ContentInsert[];
     }) => {
       return template
         .replace(
@@ -77,6 +86,10 @@ export function useInjectWebViewVariables() {
         .replace(
           /book\.locations\.generate\(1600\)/,
           `book.locations.generate(${charactersPerLocation})`
+        )
+        .replace(
+          /const contentInserts = window.content_inserts;/,
+          `const contentInserts = ${JSON.stringify(contentInserts)};`
         );
     },
     []

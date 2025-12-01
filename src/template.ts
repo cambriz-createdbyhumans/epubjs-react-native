@@ -54,6 +54,21 @@ export default `
       const theme = window.theme;
       const initialLocations = window.locations;
       const enableSelection = window.enable_selection;
+      const contentInserts = window.content_inserts;
+      const runtimeContentInserts = Array.isArray(contentInserts) ? [...contentInserts] : [];
+      const contentRendererRegistry = new Map();
+      window.__contentInsertBridge = message => {
+        try {
+          const parsed = typeof message === 'string' ? JSON.parse(message) : message;
+          if (parsed?.type === 'contentInsertSync' && Array.isArray(parsed.inserts)) {
+            runtimeContentInserts.length = 0;
+            parsed.inserts.forEach(insert => runtimeContentInserts.push(insert));
+            contentRendererRegistry.forEach(renderer => renderer(runtimeContentInserts, true));
+          }
+        } catch (error) {
+          console.log('Failed to handle content insert message', error);
+        }
+      };
 
       if (!file) {
         alert('Failed load book');
@@ -77,6 +92,9 @@ export default `
         fullsize: undefined,
         allowPopups: allowPopups,
         allowScriptedContent: allowScriptedContent
+      });
+      rendition.hooks.content.register(function (contents) {
+        insertChapterSummary(contents);
       });
      const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView!== null ? window.ReactNativeWebView: window;
       reactNativeWebview.postMessage(JSON.stringify({ type: "onStarted" }));
@@ -108,6 +126,109 @@ export default `
           return match;
       };
 
+      const emitContentInsertEvent = payload => {
+          try {
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+              } else {
+                  console.log('[ContentInsertEvent]', payload);
+              }
+          } catch (error) {
+              console.log('[ContentInsertEvent] failed to post message', error);
+          }
+      };
+
+      function insertChapterSummary(contents) {
+          try {
+              if (!contents || !contents.document) {
+                  return;
+              }
+
+              const doc = contents.document;
+              const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
+
+              const runInsertScript = (insert, wrapper) => {
+                  if (!insert?.contentJavascript) {
+                      return;
+                  }
+                  try {
+                      const scriptRunner = new Function('wrapper', 'contents', 'emitEvent', insert.contentJavascript);
+                      scriptRunner(wrapper, contents, emitContentInsertEvent);
+                  } catch (error) {
+                      console.log('[ContentInsertEvent] failed to execute insert script', error);
+                  }
+              };
+
+              const renderContentInsert = insert => {
+                  if (!insert || !insert.targetId || !insert.contentId || !insert.contentHtml || doc.querySelector('[data-epub-insert-id="' + insert.contentId + '"]')) {
+                      return;
+                  }
+
+                  const target = doc.getElementById(insert.targetId);
+
+                  if (!target || !target.parentNode) {
+                      return;
+                  }
+
+                  if (insert.contentStyle) {
+                      try {
+                          const current = target.getAttribute('style') || '';
+                          target.setAttribute('style', (current + ' ' + insert.contentStyle).trim());
+                      } catch (error) {
+                          console.log('[ContentInsertEvent] failed to apply target style', error);
+                      }
+                  }
+
+                  const wrapper = doc.createElement('section');
+                  wrapper.setAttribute('data-epub-insert', insert.targetId);
+                  wrapper.setAttribute('data-epub-insert-id', insert.contentId);
+
+                  const tempContainer = doc.createElement('div');
+                  tempContainer.innerHTML = insert.contentHtml;
+                  while (tempContainer.firstChild) {
+                      const child = tempContainer.firstChild;
+                      tempContainer.removeChild(child);
+                      wrapper.appendChild(child);
+                  }
+
+                  target.parentNode.insertBefore(wrapper, target.nextSibling);
+                  runInsertScript(insert, wrapper);
+              };
+
+              const syncContentInserts = inserts => {
+                  const nextIds = new Set((inserts || []).map(item => item?.contentId).filter(Boolean));
+                  const existingNodes = Array.from(doc.querySelectorAll('[data-epub-insert-id]'));
+                  existingNodes.forEach(node => {
+                      const nodeId = node.getAttribute('data-epub-insert-id');
+                      if (nodeId && !nextIds.has(nodeId) && node.parentNode) {
+                          node.parentNode.removeChild(node);
+                      }
+                  });
+                  inserts?.forEach(renderContentInsert);
+              };
+
+              const renderer = (inserts, replace = false) => {
+                  if (replace) {
+                      syncContentInserts(inserts);
+                      return;
+                  }
+                  inserts?.forEach(renderContentInsert);
+              };
+
+              contentRendererRegistry.set(sectionKey, renderer);
+              renderer(runtimeContentInserts, true);
+
+              if (typeof contents.on === 'function') {
+                  contents.on('destroy', () => {
+                      contentRendererRegistry.delete(sectionKey);
+                  });
+              }
+          } catch (error) {
+              console.log('Failed to insert summary section', error);
+          }
+      }
+
+      
       const makeRangeCfi = (a, b) => {
         const CFI = new ePub.CFI()
         const start = CFI.parse(a), end = CFI.parse(b)
