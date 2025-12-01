@@ -119,6 +119,7 @@ export function View({
     setFlow,
   } = useContext(ReaderContext);
   const book = useRef<WebView>(null);
+  const singleTapIgnoreUntilRef = useRef(0);
   const sendContentInsertSync = useCallback(
     (inserts: ReaderProps['contentInserts']) => {
       if (!book.current) {
@@ -179,6 +180,11 @@ export function View({
     const parsedEvent = JSON.parse(event.nativeEvent.data);
 
     const { type } = parsedEvent;
+
+    if (type === 'interactiveTap') {
+      singleTapIgnoreUntilRef.current = Date.now() + 400;
+      return;
+    }
 
     if (!INTERNAL_EVENTS.includes(type) && onWebViewMessage) {
       return onWebViewMessage(parsedEvent);
@@ -400,6 +406,9 @@ export function View({
   const isNativeSingleTapAvailable = Platform.OS === 'ios';
 
   const handleResolvedSingleTap = () => {
+    if (Date.now() < singleTapIgnoreUntilRef.current) {
+      return;
+    }
     onPress();
     onSingleTap();
   };

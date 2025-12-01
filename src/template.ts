@@ -147,6 +147,29 @@ export default `
               const doc = contents.document;
               const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
 
+              const interactiveSelectors = 'button, a[href], input, select, textarea, [role="button"], [data-content-insert-button], [data-interactive]';
+              const isInteractiveTarget = el => {
+                  if (!el) {
+                      return false;
+                  }
+                  return Boolean(el.closest?.(interactiveSelectors));
+              };
+
+              const handlePointerDown = event => {
+                  const target = event?.target;
+                  if (!target) {
+                      return;
+                  }
+                  if (isInteractiveTarget(target)) {
+                      emitContentInsertEvent({ type: 'interactiveTap' });
+                  }
+              };
+
+              doc.addEventListener('pointerdown', handlePointerDown, true);
+              contents?.on?.('destroy', () => {
+                  doc.removeEventListener('pointerdown', handlePointerDown, true);
+              });
+
               const runInsertScript = (insert, wrapper) => {
                   if (!insert?.contentJavascript) {
                       return;
