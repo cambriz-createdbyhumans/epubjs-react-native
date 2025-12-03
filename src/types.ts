@@ -17,7 +17,7 @@ export type CbhNodeInitializer = (
   node: HTMLElement
 ) => CbhNodeInitializerResult | void;
 
-export type CbhNodeInitializerSource = string;
+export type CbhNodeUpdates = string;
 
 export type PaginateOptions = {
   keepScrollOffset?: boolean;
@@ -517,5 +517,5 @@ export interface ReaderProps {
   charactersPerLocation?: number;
   contentInserts?: ContentInsert[];
   cbhNodeInitializer?: CbhNodeInitializer;
-  cbhNodeInitializerSource?: CbhNodeInitializerSource;
+  cbhNodeUpdates?: CbhNodeUpdates;
 }

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type {
   CbhNodeInitializer,
-  CbhNodeInitializerSource,
+  CbhNodeUpdates,
   ContentInsert,
   Flow,
   Manager,
@@ -32,7 +32,7 @@ export function useInjectWebViewVariables() {
       charactersPerLocation = 1600,
       contentInserts = [],
       cbhNodeInitializer,
-      cbhNodeInitializerSource,
+      cbhNodeUpdates,
     }: {
       jszip: string;
       epubjs: string;
@@ -51,10 +51,10 @@ export function useInjectWebViewVariables() {
       charactersPerLocation?: number;
       contentInserts?: ContentInsert[];
       cbhNodeInitializer?: CbhNodeInitializer;
-      cbhNodeInitializerSource?: CbhNodeInitializerSource;
+      cbhNodeUpdates?: CbhNodeUpdates;
     }) => {
       const cbhInitializerString =
-        cbhNodeInitializerSource ?? (cbhNodeInitializer ? cbhNodeInitializer.toString() : undefined);
+        cbhNodeUpdates ?? (cbhNodeInitializer ? cbhNodeInitializer.toString() : undefined);
       const cbhInitializerFinal = cbhInitializerString
         ? `(${cbhInitializerString})`
         : 'null';

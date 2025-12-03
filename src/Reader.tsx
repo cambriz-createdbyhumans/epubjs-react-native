@@ -21,7 +21,7 @@ export function Reader({
   initialLocations,
   contentInserts = [],
   cbhNodeInitializer,
-  cbhNodeInitializerSource,
+  cbhNodeUpdates,
   allowScriptedContent = Platform.OS === 'ios',
   onPressExternalLink,
   renderLoadingFileComponent = (props) => (
@@ -56,7 +56,7 @@ export function Reader({
   const [allowedUris, setAllowedUris] = useState<string | null>(null);
   const initialContentInsertsRef = useRef(contentInserts);
   const initialCbhNodeInitializerRef = useRef(cbhNodeInitializer);
-  const initialCbhNodeInitializerSourceRef = useRef(cbhNodeInitializerSource);
+  const initialCbhNodeUpdatesRef = useRef(cbhNodeUpdates);
 
   useEffect(() => {
     (async () => {
@@ -111,8 +111,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeInitializer: initialCbhNodeInitializerRef.current,
-                cbhNodeInitializerSource:
-                  initialCbhNodeInitializerSourceRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -137,8 +136,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeInitializer: initialCbhNodeInitializerRef.current,
-                cbhNodeInitializerSource:
-                  initialCbhNodeInitializerSourceRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -173,8 +171,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeInitializer: initialCbhNodeInitializerRef.current,
-                cbhNodeInitializerSource:
-                  initialCbhNodeInitializerSourceRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -205,8 +202,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeInitializer: initialCbhNodeInitializerRef.current,
-                cbhNodeInitializerSource:
-                  initialCbhNodeInitializerSourceRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -282,7 +278,7 @@ export function Reader({
       snap={snap}
       contentInserts={contentInserts}
       cbhNodeInitializer={cbhNodeInitializer}
-      cbhNodeInitializerSource={cbhNodeInitializerSource}
+      cbhNodeUpdates={cbhNodeUpdates}
       {...rest}
     />
   );
