@@ -56,7 +56,22 @@ export default `
       const enableSelection = window.enable_selection;
       const contentInserts = window.content_inserts;
       const runtimeContentInserts = Array.isArray(contentInserts) ? [...contentInserts] : [];
+      const cbhNodeInitializer = window.cbh_node_initializer;
+      const cbhNodeInitializerSkipped = window.cbh_node_initializer_skipped || false;
+      const runtimeCbhNodeInitializer = typeof cbhNodeInitializer === 'function' ? cbhNodeInitializer : null;
       const contentRendererRegistry = new Map();
+      const cbhNodeRendererRegistry = new Map();
+      const sendDebugLog = (message, data) => {
+          try {
+              const payload = { type: 'cbhDebugLog', message, data };
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+              }
+              console.log('[CbhNode]', message, data || '');
+          } catch (error) {
+              console.log('[CbhNode] failed to send debug log', error);
+          }
+      };
       window.__contentInsertBridge = message => {
         try {
           const parsed = typeof message === 'string' ? JSON.parse(message) : message;
@@ -95,6 +110,8 @@ export default `
       });
       rendition.hooks.content.register(function (contents) {
         insertChapterSummary(contents);
+        console.log("rendition.hooks.content.register called for contents", contents);
+        initializeCbhNodes(contents);
       });
      const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView!== null ? window.ReactNativeWebView: window;
       reactNativeWebview.postMessage(JSON.stringify({ type: "onStarted" }));
@@ -248,6 +265,91 @@ export default `
               }
           } catch (error) {
               console.log('Failed to insert summary section', error);
+          }
+      }
+
+      function initializeCbhNodes(contents) {
+          try {
+              console.log("[cbhNodeInitializer] initializing contents", { href: contents?.href });
+              if (!contents || !contents.document) {
+                  sendDebugLog('missing contents or document, skipping');
+                  return;
+              }
+
+              if (cbhNodeInitializerSkipped) {
+                  sendDebugLog('initializer skipped during serialization', { reason: 'native/bytecode toString' });
+              }
+
+              if (!runtimeCbhNodeInitializer) {
+                  sendDebugLog('no initializer provided, skipping');
+                  return;
+              }
+
+              const doc = contents.document;
+              const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
+              sendDebugLog('initializing section', { sectionKey });
+
+              const renderNodes = () => {
+                  const nodes = Array.from(doc.querySelectorAll('[data-cbh-node]'));
+                  sendDebugLog('found cbh nodes', { count: nodes.length });
+                  nodes.forEach(node => {
+                      try {
+                          const nodeType =
+                              node.getAttribute('data-node-type') ||
+                              node.getAttribute('data-nodetype') ||
+                              node.getAttribute('data-nodeType');
+                          const chapterId =
+                              node.getAttribute('data-chapter-id') ||
+                              node.getAttribute('data-chapterid') ||
+                              node.getAttribute('data-chapterId');
+                          const response = runtimeCbhNodeInitializer(node);
+                          sendDebugLog('initializer response', { nodeType, chapterId, hasResponse: !!response });
+                          if (!response) {
+                              return;
+                          }
+
+                          if (response.style) {
+                              const current = node.getAttribute('style') || '';
+                              node.setAttribute('style', (current + ' ' + response.style).trim());
+                              sendDebugLog('applied style', { nodeType, chapterId });
+                          }
+
+                          if (typeof response.innerHTML === 'string') {
+                              node.innerHTML = response.innerHTML;
+                              sendDebugLog('replaced innerHTML', { nodeType, chapterId });
+
+                              const scripts = Array.from(node.querySelectorAll('script'));
+                              scripts.forEach(script => {
+                                  const code = script.textContent;
+                                  if (!code) {
+                                      return;
+                                  }
+
+                                  try {
+                                      const scriptRunner = new Function('node', 'contents', 'emitEvent', code);
+                                      scriptRunner(node, contents, emitContentInsertEvent);
+                                      sendDebugLog('executed inline script', { nodeType, chapterId });
+                                  } catch (error) {
+                                      sendDebugLog('failed to execute initializer script', { error: error?.message, nodeType, chapterId });
+                                  }
+                              });
+                          }
+                      } catch (error) {
+                          sendDebugLog('failed to initialize node', { error: error?.message });
+                      }
+                  });
+              };
+
+              cbhNodeRendererRegistry.set(sectionKey, renderNodes);
+              renderNodes();
+
+              if (typeof contents.on === 'function') {
+                  contents.on('destroy', () => {
+                      cbhNodeRendererRegistry.delete(sectionKey);
+                  });
+              }
+          } catch (error) {
+              console.log('Failed to initialize cbh nodes', error);
           }
       }
 

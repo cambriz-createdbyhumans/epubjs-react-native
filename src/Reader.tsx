@@ -20,6 +20,8 @@ export function Reader({
   defaultTheme = initialTheme,
   initialLocations,
   contentInserts = [],
+  cbhNodeInitializer,
+  cbhNodeInitializerSource,
   allowScriptedContent = Platform.OS === 'ios',
   onPressExternalLink,
   renderLoadingFileComponent = (props) => (
@@ -53,6 +55,8 @@ export function Reader({
   const [templateUrl, setTemplateUrl] = useState<string | null>(null);
   const [allowedUris, setAllowedUris] = useState<string | null>(null);
   const initialContentInsertsRef = useRef(contentInserts);
+  const initialCbhNodeInitializerRef = useRef(cbhNodeInitializer);
+  const initialCbhNodeInitializerSourceRef = useRef(cbhNodeInitializerSource);
 
   useEffect(() => {
     (async () => {
@@ -106,6 +110,9 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
+                cbhNodeInitializerSource:
+                  initialCbhNodeInitializerSourceRef.current,
               })
             );
 
@@ -129,6 +136,9 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
+                cbhNodeInitializerSource:
+                  initialCbhNodeInitializerSourceRef.current,
               })
             );
 
@@ -162,6 +172,9 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
+                cbhNodeInitializerSource:
+                  initialCbhNodeInitializerSourceRef.current,
               })
             );
 
@@ -191,6 +204,9 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
+                cbhNodeInitializerSource:
+                  initialCbhNodeInitializerSourceRef.current,
               })
             );
 
@@ -265,6 +281,8 @@ export function Reader({
       flow={flow}
       snap={snap}
       contentInserts={contentInserts}
+      cbhNodeInitializer={cbhNodeInitializer}
+      cbhNodeInitializerSource={cbhNodeInitializerSource}
       {...rest}
     />
   );

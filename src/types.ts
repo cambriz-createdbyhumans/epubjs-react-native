@@ -8,6 +8,17 @@ export type ContentInsert = {
   contentStyle?: string;
 };
 
+export type CbhNodeInitializerResult = {
+  style?: string;
+  innerHTML?: string;
+};
+
+export type CbhNodeInitializer = (
+  node: HTMLElement
+) => CbhNodeInitializerResult | void;
+
+export type CbhNodeInitializerSource = string;
+
 export type PaginateOptions = {
   keepScrollOffset?: boolean;
 };
@@ -505,4 +516,6 @@ export interface ReaderProps {
    */
   charactersPerLocation?: number;
   contentInserts?: ContentInsert[];
+  cbhNodeInitializer?: CbhNodeInitializer;
+  cbhNodeInitializerSource?: CbhNodeInitializerSource;
 }

@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import type {
+  CbhNodeInitializer,
+  CbhNodeInitializerSource,
   ContentInsert,
   Flow,
   Manager,
@@ -29,6 +31,8 @@ export function useInjectWebViewVariables() {
       fullsize,
       charactersPerLocation = 1600,
       contentInserts = [],
+      cbhNodeInitializer,
+      cbhNodeInitializerSource,
     }: {
       jszip: string;
       epubjs: string;
@@ -46,7 +50,16 @@ export function useInjectWebViewVariables() {
       fullsize?: boolean;
       charactersPerLocation?: number;
       contentInserts?: ContentInsert[];
+      cbhNodeInitializer?: CbhNodeInitializer;
+      cbhNodeInitializerSource?: CbhNodeInitializerSource;
     }) => {
+      const cbhInitializerString =
+        cbhNodeInitializerSource ?? (cbhNodeInitializer ? cbhNodeInitializer.toString() : undefined);
+      const cbhInitializerFinal = cbhInitializerString
+        ? `(${cbhInitializerString})`
+        : 'null';
+      const cbhInitializerSkipped = cbhInitializerFinal === 'null';
+
       return template
         .replace(
           /<script id="jszip"><\/script>/,
@@ -90,6 +103,14 @@ export function useInjectWebViewVariables() {
         .replace(
           /const contentInserts = window.content_inserts;/,
           `const contentInserts = ${JSON.stringify(contentInserts)};`
+        )
+        .replace(
+          /const cbhNodeInitializer = window.cbh_node_initializer;/,
+          `const cbhNodeInitializer = ${cbhInitializerFinal};`
+        )
+        .replace(
+          /const cbhNodeInitializerSkipped = window.cbh_node_initializer_skipped \|\| false;/,
+          `const cbhNodeInitializerSkipped = ${cbhInitializerSkipped};`
         );
     },
     []
