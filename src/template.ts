@@ -56,9 +56,18 @@ export default `
       const enableSelection = window.enable_selection;
       const contentInserts = window.content_inserts;
       const runtimeContentInserts = Array.isArray(contentInserts) ? [...contentInserts] : [];
+      const cbhNodeUpdates = window.cbh_node_updates;
       const cbhNodeInitializer = window.cbh_node_initializer;
       const cbhNodeInitializerSkipped = window.cbh_node_initializer_skipped || false;
-      const runtimeCbhNodeInitializer = typeof cbhNodeInitializer === 'function' ? cbhNodeInitializer : null;
+      let runtimeCbhUpdates = typeof cbhNodeUpdates === 'string' ? cbhNodeUpdates : null;
+      let runtimeCbhNodeInitializer = typeof cbhNodeInitializer === 'function' ? cbhNodeInitializer : null;
+      if (!runtimeCbhNodeInitializer && runtimeCbhUpdates) {
+        try {
+          runtimeCbhNodeInitializer = new Function('return (' + runtimeCbhUpdates + ');')();
+        } catch (error) {
+          sendDebugLog('failed to parse cbh updates', { error: error?.message });
+        }
+      }
       const contentRendererRegistry = new Map();
       const cbhNodeRendererRegistry = new Map();
       const sendDebugLog = (message, data) => {
@@ -82,6 +91,23 @@ export default `
           }
         } catch (error) {
           console.log('Failed to handle content insert message', error);
+        }
+      };
+      window.__cbhNodeUpdatesBridge = message => {
+        try {
+          const parsed = typeof message === 'string' ? JSON.parse(message) : message;
+          if (parsed?.type === 'cbhNodeUpdatesSync' && parsed?.updates) {
+            runtimeCbhUpdates = parsed.updates;
+            try {
+              runtimeCbhNodeInitializer = new Function('return (' + runtimeCbhUpdates + ');')();
+            } catch (error) {
+              sendDebugLog('failed to parse cbh updates', { error: error?.message });
+              return;
+            }
+            cbhNodeRendererRegistry.forEach(renderer => renderer());
+          }
+        } catch (error) {
+          sendDebugLog('failed to handle cbh updates message', { error: error?.message });
         }
       };
 
@@ -289,6 +315,23 @@ export default `
               const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
               sendDebugLog('initializing section', { sectionKey });
 
+              const delegatedButtonHandler = (event) => {
+                  try {
+                      const target = event.target && event.target.closest && event.target.closest('[cbh-node-button]');
+                      if (!target) {
+                          return;
+                      }
+                      const chapterId = target.getAttribute('data-chapter-id');
+                      const nodeType = target.getAttribute('data-node-type');
+
+                      emitContentInsertEvent({ type: 'cbhNodeButton', chapterId, nodeType });
+                  } catch (error) {
+                      sendDebugLog('failed delegated button handler', { error: error?.message });
+                  }
+              };
+
+              doc.addEventListener('click', delegatedButtonHandler);
+
               const renderNodes = () => {
                   const nodes = Array.from(doc.querySelectorAll('[data-cbh-node]'));
                   sendDebugLog('found cbh nodes', { count: nodes.length });
@@ -346,6 +389,7 @@ export default `
               if (typeof contents.on === 'function') {
                   contents.on('destroy', () => {
                       cbhNodeRendererRegistry.delete(sectionKey);
+                      doc.removeEventListener('click', delegatedButtonHandler);
                   });
               }
           } catch (error) {

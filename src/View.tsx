@@ -85,6 +85,7 @@ export function View({
   flow,
   onChangeSection = () => {},
   contentInserts = [],
+  cbhNodeUpdates,
 }: ViewProps) {
   const {
     registerBook,
@@ -140,6 +141,26 @@ export function View({
     },
     []
   );
+  const sendCbhNodeUpdatesSync = useCallback(
+    (updates: ReaderProps['cbhNodeUpdates']) => {
+      if (!book.current || typeof updates !== 'string') {
+        return;
+      }
+      const payload = JSON.stringify({
+        type: 'cbhNodeUpdatesSync',
+        updates,
+      });
+      book.current.injectJavaScript(`
+        try {
+          window.__cbhNodeUpdatesBridge && window.__cbhNodeUpdatesBridge(${payload});
+        } catch (error) {
+          console.log('Failed to sync cbh node updates', error);
+        }
+        true;
+      `);
+    },
+    []
+  );
   const [selectedText, setSelectedText] = useState<{
     cfiRange: string;
     cfiRangeText: string;
@@ -161,6 +182,13 @@ export function View({
     }
     sendContentInsertSync(contentInserts);
   }, [contentInserts, sendContentInsertSync]);
+
+  useEffect(() => {
+    if (typeof cbhNodeUpdates !== 'string') {
+      return;
+    }
+    sendCbhNodeUpdatesSync(cbhNodeUpdates);
+  }, [cbhNodeUpdates, sendCbhNodeUpdatesSync]);
 
   const handleChangeIsBookmarked = (
     items: Bookmark[],
@@ -202,6 +230,9 @@ export function View({
 
       changeTheme(defaultTheme);
       sendContentInsertSync(contentInserts);
+      if (typeof cbhNodeUpdates === 'string') {
+        sendCbhNodeUpdatesSync(cbhNodeUpdates);
+      }
 
       return onStarted();
     }

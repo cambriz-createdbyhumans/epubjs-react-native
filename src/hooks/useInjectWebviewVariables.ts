@@ -53,12 +53,9 @@ export function useInjectWebViewVariables() {
       cbhNodeInitializer?: CbhNodeInitializer;
       cbhNodeUpdates?: CbhNodeUpdates;
     }) => {
-      const cbhInitializerString =
-        cbhNodeUpdates ?? (cbhNodeInitializer ? cbhNodeInitializer.toString() : undefined);
-      const cbhInitializerFinal = cbhInitializerString
-        ? `(${cbhInitializerString})`
+      const cbhInitializerFinal = cbhNodeUpdates
+        ? `(${cbhNodeUpdates})`
         : 'null';
-      const cbhInitializerSkipped = cbhInitializerFinal === 'null';
 
       return template
         .replace(
@@ -105,12 +102,16 @@ export function useInjectWebViewVariables() {
           `const contentInserts = ${JSON.stringify(contentInserts)};`
         )
         .replace(
+          /const cbhNodeUpdates = window.cbh_node_updates;/,
+          `const cbhNodeUpdates = ${cbhNodeUpdates ? JSON.stringify(cbhNodeUpdates) : null};`
+        )
+        .replace(
           /const cbhNodeInitializer = window.cbh_node_initializer;/,
           `const cbhNodeInitializer = ${cbhInitializerFinal};`
         )
         .replace(
           /const cbhNodeInitializerSkipped = window.cbh_node_initializer_skipped \|\| false;/,
-          `const cbhNodeInitializerSkipped = ${cbhInitializerSkipped};`
+          `const cbhNodeInitializerSkipped = ${cbhInitializerFinal === 'null'};`
         );
     },
     []
