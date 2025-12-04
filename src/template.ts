@@ -135,9 +135,17 @@ export default `
         allowScriptedContent: allowScriptedContent
       });
       rendition.hooks.content.register(function (contents) {
+        if (!runtimeCbhNodeInitializer && runtimeCbhUpdates) {
+          try {
+            runtimeCbhNodeInitializer = new Function('return (' + runtimeCbhUpdates + ');')();
+          } catch (error) {
+            sendDebugLog('failed to parse cbh updates inside content hook', { error: error?.message });
+          }
+        }
+
+        initializeCbhNodes(contents);
         insertChapterSummary(contents);
         console.log("rendition.hooks.content.register called for contents", contents);
-        initializeCbhNodes(contents);
       });
      const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView!== null ? window.ReactNativeWebView: window;
       reactNativeWebview.postMessage(JSON.stringify({ type: "onStarted" }));
@@ -296,11 +304,29 @@ export default `
 
       function initializeCbhNodes(contents) {
           try {
-              console.log("[cbhNodeInitializer] initializing contents", { href: contents?.href });
+              const href =
+                  contents?.href ||
+                  contents?.document?.baseURI ||
+                  contents?.document?.location?.href;
+              const key = contents?.index ?? href;
+              const initPayload = {
+                  href,
+                  key,
+                  hasDocument: !!contents?.document,
+              };
+              console.log("[cbhNodeInitializer] initializing contents", initPayload);
+              sendDebugLog('cbh initialize contents', initPayload);
               if (!contents || !contents.document) {
                   sendDebugLog('missing contents or document, skipping');
                   return;
               }
+
+              if (!href || href.startsWith('about:')) {
+                  sendDebugLog('cbh initialize contents skipped (non-spine)', initPayload);
+                  return;
+              }
+
+              sendDebugLog('cbh initialize contents (spine)', initPayload);
 
               if (cbhNodeInitializerSkipped) {
                   sendDebugLog('initializer skipped during serialization', { reason: 'native/bytecode toString' });
@@ -335,6 +361,9 @@ export default `
               const renderNodes = () => {
                   const nodes = Array.from(doc.querySelectorAll('[data-cbh-node]'));
                   sendDebugLog('found cbh nodes', { count: nodes.length });
+                  if (!nodes.length) {
+                      return;
+                  }
                   nodes.forEach(node => {
                       try {
                           const nodeType =
