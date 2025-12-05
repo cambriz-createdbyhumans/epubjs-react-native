@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import type {
-  CbhNodeInitializer,
   CbhNodeUpdates,
   ContentInsert,
   Flow,
@@ -31,7 +30,6 @@ export function useInjectWebViewVariables() {
       fullsize,
       charactersPerLocation = 1600,
       contentInserts = [],
-      cbhNodeInitializer,
       cbhNodeUpdates,
     }: {
       jszip: string;
@@ -50,13 +48,8 @@ export function useInjectWebViewVariables() {
       fullsize?: boolean;
       charactersPerLocation?: number;
       contentInserts?: ContentInsert[];
-      cbhNodeInitializer?: CbhNodeInitializer;
       cbhNodeUpdates?: CbhNodeUpdates;
     }) => {
-      const cbhInitializerFinal = cbhNodeUpdates
-        ? `(${cbhNodeUpdates})`
-        : 'null';
-
       return template
         .replace(
           /<script id="jszip"><\/script>/,
@@ -104,14 +97,6 @@ export function useInjectWebViewVariables() {
         .replace(
           /const cbhNodeUpdates = window.cbh_node_updates;/,
           `const cbhNodeUpdates = ${cbhNodeUpdates ? JSON.stringify(cbhNodeUpdates) : null};`
-        )
-        .replace(
-          /const cbhNodeInitializer = window.cbh_node_initializer;/,
-          `const cbhNodeInitializer = ${cbhInitializerFinal};`
-        )
-        .replace(
-          /const cbhNodeInitializerSkipped = window.cbh_node_initializer_skipped \|\| false;/,
-          `const cbhNodeInitializerSkipped = ${cbhInitializerFinal === 'null'};`
         );
     },
     []

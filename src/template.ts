@@ -57,17 +57,6 @@ export default `
       const contentInserts = window.content_inserts;
       const runtimeContentInserts = Array.isArray(contentInserts) ? [...contentInserts] : [];
       const cbhNodeUpdates = window.cbh_node_updates;
-      const cbhNodeInitializer = window.cbh_node_initializer;
-      const cbhNodeInitializerSkipped = window.cbh_node_initializer_skipped || false;
-      let runtimeCbhUpdates = typeof cbhNodeUpdates === 'string' ? cbhNodeUpdates : null;
-      let runtimeCbhNodeInitializer = typeof cbhNodeInitializer === 'function' ? cbhNodeInitializer : null;
-      if (!runtimeCbhNodeInitializer && runtimeCbhUpdates) {
-        try {
-          runtimeCbhNodeInitializer = new Function('return (' + runtimeCbhUpdates + ');')();
-        } catch (error) {
-          sendDebugLog('failed to parse cbh updates', { error: error?.message });
-        }
-      }
       const contentRendererRegistry = new Map();
       const cbhNodeRendererRegistry = new Map();
       const sendDebugLog = (message, data) => {
@@ -81,6 +70,19 @@ export default `
               console.log('[CbhNode] failed to send debug log', error);
           }
       };
+      let runtimeCbhUpdates = typeof cbhNodeUpdates === 'string' ? cbhNodeUpdates : null;
+      const parseCbhNodeUpdates = updates => {
+          if (typeof updates !== 'string') {
+              return null;
+          }
+          try {
+              return new Function('return (' + updates + ');')();
+          } catch (error) {
+              sendDebugLog('failed to parse cbh updates', { error: error?.message });
+              return null;
+          }
+      };
+      let runtimeCbhNodeHandler = parseCbhNodeUpdates(runtimeCbhUpdates);
       window.__contentInsertBridge = message => {
         try {
           const parsed = typeof message === 'string' ? JSON.parse(message) : message;
@@ -98,10 +100,8 @@ export default `
           const parsed = typeof message === 'string' ? JSON.parse(message) : message;
           if (parsed?.type === 'cbhNodeUpdatesSync' && parsed?.updates) {
             runtimeCbhUpdates = parsed.updates;
-            try {
-              runtimeCbhNodeInitializer = new Function('return (' + runtimeCbhUpdates + ');')();
-            } catch (error) {
-              sendDebugLog('failed to parse cbh updates', { error: error?.message });
+            runtimeCbhNodeHandler = parseCbhNodeUpdates(runtimeCbhUpdates);
+            if (!runtimeCbhNodeHandler) {
               return;
             }
             cbhNodeRendererRegistry.forEach(renderer => renderer());
@@ -135,12 +135,8 @@ export default `
         allowScriptedContent: allowScriptedContent
       });
       rendition.hooks.content.register(function (contents) {
-        if (!runtimeCbhNodeInitializer && runtimeCbhUpdates) {
-          try {
-            runtimeCbhNodeInitializer = new Function('return (' + runtimeCbhUpdates + ');')();
-          } catch (error) {
-            sendDebugLog('failed to parse cbh updates inside content hook', { error: error?.message });
-          }
+        if (!runtimeCbhNodeHandler && runtimeCbhUpdates) {
+          runtimeCbhNodeHandler = parseCbhNodeUpdates(runtimeCbhUpdates);
         }
 
         initializeCbhNodes(contents);
@@ -314,7 +310,7 @@ export default `
                   key,
                   hasDocument: !!contents?.document,
               };
-              console.log("[cbhNodeInitializer] initializing contents", initPayload);
+              console.log("[cbhNodeUpdates] initializing contents", initPayload);
               sendDebugLog('cbh initialize contents', initPayload);
               if (!contents || !contents.document) {
                   sendDebugLog('missing contents or document, skipping');
@@ -328,12 +324,8 @@ export default `
 
               sendDebugLog('cbh initialize contents (spine)', initPayload);
 
-              if (cbhNodeInitializerSkipped) {
-                  sendDebugLog('initializer skipped during serialization', { reason: 'native/bytecode toString' });
-              }
-
-              if (!runtimeCbhNodeInitializer) {
-                  sendDebugLog('no initializer provided, skipping');
+              if (!runtimeCbhNodeHandler) {
+                  sendDebugLog('no node updates provided, skipping');
                   return;
               }
 
@@ -374,8 +366,8 @@ export default `
                               node.getAttribute('data-chapter-id') ||
                               node.getAttribute('data-chapterid') ||
                               node.getAttribute('data-chapterId');
-                          const response = runtimeCbhNodeInitializer(node);
-                          sendDebugLog('initializer response', { nodeType, chapterId, hasResponse: !!response });
+                          const response = runtimeCbhNodeHandler(node);
+                          sendDebugLog('node updates response', { nodeType, chapterId, hasResponse: !!response });
                           if (!response) {
                               return;
                           }
@@ -402,12 +394,12 @@ export default `
                                       scriptRunner(node, contents, emitContentInsertEvent);
                                       sendDebugLog('executed inline script', { nodeType, chapterId });
                                   } catch (error) {
-                                      sendDebugLog('failed to execute initializer script', { error: error?.message, nodeType, chapterId });
+                                      sendDebugLog('failed to execute update script', { error: error?.message, nodeType, chapterId });
                                   }
                               });
                           }
                       } catch (error) {
-                          sendDebugLog('failed to initialize node', { error: error?.message });
+                          sendDebugLog('failed to update node', { error: error?.message });
                       }
                   });
               };

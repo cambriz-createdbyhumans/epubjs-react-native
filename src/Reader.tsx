@@ -20,7 +20,6 @@ export function Reader({
   defaultTheme = initialTheme,
   initialLocations,
   contentInserts = [],
-  cbhNodeInitializer,
   cbhNodeUpdates,
   allowScriptedContent = Platform.OS === 'ios',
   onPressExternalLink,
@@ -55,7 +54,6 @@ export function Reader({
   const [templateUrl, setTemplateUrl] = useState<string | null>(null);
   const [allowedUris, setAllowedUris] = useState<string | null>(null);
   const initialContentInsertsRef = useRef(contentInserts);
-  const initialCbhNodeInitializerRef = useRef(cbhNodeInitializer);
   const initialCbhNodeUpdatesRef = useRef(cbhNodeUpdates);
 
   useEffect(() => {
@@ -110,7 +108,6 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
-                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
@@ -135,7 +132,6 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
-                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
@@ -170,7 +166,6 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
-                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
@@ -201,7 +196,6 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
-                cbhNodeInitializer: initialCbhNodeInitializerRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
@@ -277,7 +271,6 @@ export function Reader({
       flow={flow}
       snap={snap}
       contentInserts={contentInserts}
-      cbhNodeInitializer={cbhNodeInitializer}
       cbhNodeUpdates={cbhNodeUpdates}
       {...rest}
     />
