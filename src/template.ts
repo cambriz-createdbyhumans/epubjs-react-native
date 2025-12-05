@@ -66,7 +66,6 @@ export default `
                   window.ReactNativeWebView.postMessage(JSON.stringify(payload));
               }
           } catch (error) {
-              sendDebugLog('[CbhNode] failed to send debug log', error);
           }
       };
       let runtimeCbhUpdates = typeof cbhNodeUpdates === 'string' ? cbhNodeUpdates : null;
@@ -312,10 +311,6 @@ export default `
                   return;
               }
 
-              if (!runtimeCbhNodeHandler) {
-                  return;
-              }
-
               const doc = contents.document;
               const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
 
@@ -338,7 +333,7 @@ export default `
 
               const renderNodes = () => {
                   const nodes = Array.from(doc.querySelectorAll('[data-cbh-node]'));
-                  if (!nodes.length) {
+                  if (!runtimeCbhNodeHandler || !nodes.length) {
                       return;
                   }
                   nodes.forEach(node => {
