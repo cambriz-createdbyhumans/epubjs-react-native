@@ -8,6 +8,8 @@ export type ContentInsert = {
   contentStyle?: string;
 };
 
+export type CbhNodeUpdates = string;
+
 export type PaginateOptions = {
   keepScrollOffset?: boolean;
 };
@@ -505,4 +507,5 @@ export interface ReaderProps {
    */
   charactersPerLocation?: number;
   contentInserts?: ContentInsert[];
+  cbhNodeUpdates?: CbhNodeUpdates;
 }

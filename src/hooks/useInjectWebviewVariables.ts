@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import type {
+  CbhNodeUpdates,
   ContentInsert,
   Flow,
   Manager,
@@ -29,6 +30,7 @@ export function useInjectWebViewVariables() {
       fullsize,
       charactersPerLocation = 1600,
       contentInserts = [],
+      cbhNodeUpdates,
     }: {
       jszip: string;
       epubjs: string;
@@ -46,6 +48,7 @@ export function useInjectWebViewVariables() {
       fullsize?: boolean;
       charactersPerLocation?: number;
       contentInserts?: ContentInsert[];
+      cbhNodeUpdates?: CbhNodeUpdates;
     }) => {
       return template
         .replace(
@@ -90,6 +93,10 @@ export function useInjectWebViewVariables() {
         .replace(
           /const contentInserts = window.content_inserts;/,
           `const contentInserts = ${JSON.stringify(contentInserts)};`
+        )
+        .replace(
+          /const cbhNodeUpdates = window.cbh_node_updates;/,
+          `const cbhNodeUpdates = ${cbhNodeUpdates ? JSON.stringify(cbhNodeUpdates) : null};`
         );
     },
     []
