@@ -358,14 +358,8 @@ export default `
                   }
                   nodes.forEach(node => {
                       try {
-                          const nodeType =
-                              node.getAttribute('data-node-type') ||
-                              node.getAttribute('data-nodetype') ||
-                              node.getAttribute('data-nodeType');
-                          const chapterId =
-                              node.getAttribute('data-chapter-id') ||
-                              node.getAttribute('data-chapterid') ||
-                              node.getAttribute('data-chapterId');
+                          const nodeType = node.getAttribute('data-node-type');
+                          const chapterId = node.getAttribute('data-chapter-id');
                           const response = runtimeCbhNodeHandler(node);
                           sendDebugLog('node updates response', { nodeType, chapterId, hasResponse: !!response });
                           if (!response) {
@@ -381,22 +375,6 @@ export default `
                           if (typeof response.innerHTML === 'string') {
                               node.innerHTML = response.innerHTML;
                               sendDebugLog('replaced innerHTML', { nodeType, chapterId });
-
-                              const scripts = Array.from(node.querySelectorAll('script'));
-                              scripts.forEach(script => {
-                                  const code = script.textContent;
-                                  if (!code) {
-                                      return;
-                                  }
-
-                                  try {
-                                      const scriptRunner = new Function('node', 'contents', 'emitEvent', code);
-                                      scriptRunner(node, contents, emitContentInsertEvent);
-                                      sendDebugLog('executed inline script', { nodeType, chapterId });
-                                  } catch (error) {
-                                      sendDebugLog('failed to execute update script', { error: error?.message, nodeType, chapterId });
-                                  }
-                              });
                           }
                       } catch (error) {
                           sendDebugLog('failed to update node', { error: error?.message });
