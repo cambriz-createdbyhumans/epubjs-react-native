@@ -65,9 +65,8 @@ export default `
               if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
                   window.ReactNativeWebView.postMessage(JSON.stringify(payload));
               }
-              console.log('[CbhNode]', message, data || '');
           } catch (error) {
-              console.log('[CbhNode] failed to send debug log', error);
+              sendDebugLog('[CbhNode] failed to send debug log', error);
           }
       };
       let runtimeCbhUpdates = typeof cbhNodeUpdates === 'string' ? cbhNodeUpdates : null;
@@ -327,12 +326,12 @@ export default `
                           return;
                       }
                       const chapterId = target.getAttribute('data-chapter-id');
-                  const nodeType = target.getAttribute('data-node-type');
+                      const nodeType = target.getAttribute('data-node-type');
 
-                  emitContentInsertEvent({ type: 'cbhNodeButton', chapterId, nodeType });
-                } catch (error) {
-                    sendDebugLog('failed delegated button handler', { error: error?.message });
-                }
+                      emitContentInsertEvent({ type: 'cbhNodeButton', chapterId, nodeType });
+                  } catch (error) {
+                      sendDebugLog('failed delegated button handler', { error: error?.message });
+                  }
               };
 
               doc.addEventListener('click', delegatedButtonHandler);
@@ -374,7 +373,7 @@ export default `
                   });
               }
           } catch (error) {
-              console.log('Failed to initialize cbh nodes', error);
+              sendDebugLog('Failed to initialize cbh nodes', error);
           }
       }
 
