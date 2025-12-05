@@ -135,13 +135,8 @@ export default `
         allowScriptedContent: allowScriptedContent
       });
       rendition.hooks.content.register(function (contents) {
-        if (!runtimeCbhNodeHandler && runtimeCbhUpdates) {
-          runtimeCbhNodeHandler = parseCbhNodeUpdates(runtimeCbhUpdates);
-        }
-
         initializeCbhNodes(contents);
         insertChapterSummary(contents);
-        console.log("rendition.hooks.content.register called for contents", contents);
       });
      const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView!== null ? window.ReactNativeWebView: window;
       reactNativeWebview.postMessage(JSON.stringify({ type: "onStarted" }));
@@ -310,28 +305,20 @@ export default `
                   key,
                   hasDocument: !!contents?.document,
               };
-              console.log("[cbhNodeUpdates] initializing contents", initPayload);
-              sendDebugLog('cbh initialize contents', initPayload);
               if (!contents || !contents.document) {
-                  sendDebugLog('missing contents or document, skipping');
                   return;
               }
 
               if (!href || href.startsWith('about:')) {
-                  sendDebugLog('cbh initialize contents skipped (non-spine)', initPayload);
                   return;
               }
 
-              sendDebugLog('cbh initialize contents (spine)', initPayload);
-
               if (!runtimeCbhNodeHandler) {
-                  sendDebugLog('no node updates provided, skipping');
                   return;
               }
 
               const doc = contents.document;
               const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
-              sendDebugLog('initializing section', { sectionKey });
 
               const delegatedButtonHandler = (event) => {
                   try {
@@ -340,19 +327,18 @@ export default `
                           return;
                       }
                       const chapterId = target.getAttribute('data-chapter-id');
-                      const nodeType = target.getAttribute('data-node-type');
+                  const nodeType = target.getAttribute('data-node-type');
 
-                      emitContentInsertEvent({ type: 'cbhNodeButton', chapterId, nodeType });
-                  } catch (error) {
-                      sendDebugLog('failed delegated button handler', { error: error?.message });
-                  }
+                  emitContentInsertEvent({ type: 'cbhNodeButton', chapterId, nodeType });
+                } catch (error) {
+                    sendDebugLog('failed delegated button handler', { error: error?.message });
+                }
               };
 
               doc.addEventListener('click', delegatedButtonHandler);
 
               const renderNodes = () => {
                   const nodes = Array.from(doc.querySelectorAll('[data-cbh-node]'));
-                  sendDebugLog('found cbh nodes', { count: nodes.length });
                   if (!nodes.length) {
                       return;
                   }
@@ -361,20 +347,16 @@ export default `
                           const nodeType = node.getAttribute('data-node-type');
                           const chapterId = node.getAttribute('data-chapter-id');
                           const response = runtimeCbhNodeHandler(node);
-                          sendDebugLog('node updates response', { nodeType, chapterId, hasResponse: !!response });
                           if (!response) {
                               return;
                           }
 
                           if (response.style) {
-                              const current = node.getAttribute('style') || '';
-                              node.setAttribute('style', (current + ' ' + response.style).trim());
-                              sendDebugLog('applied style', { nodeType, chapterId });
+                              node.setAttribute('style', response.style);
                           }
 
                           if (typeof response.innerHTML === 'string') {
                               node.innerHTML = response.innerHTML;
-                              sendDebugLog('replaced innerHTML', { nodeType, chapterId });
                           }
                       } catch (error) {
                           sendDebugLog('failed to update node', { error: error?.message });
