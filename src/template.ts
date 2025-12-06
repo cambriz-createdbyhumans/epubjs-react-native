@@ -56,7 +56,31 @@ export default `
       const enableSelection = window.enable_selection;
       const contentInserts = window.content_inserts;
       const runtimeContentInserts = Array.isArray(contentInserts) ? [...contentInserts] : [];
+      const cbhNodeUpdates = window.cbh_node_updates;
       const contentRendererRegistry = new Map();
+      const cbhNodeRendererRegistry = new Map();
+      const sendDebugLog = (message, data) => {
+          try {
+              const payload = { type: 'cbhDebugLog', message, data };
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+              }
+          } catch (error) {
+          }
+      };
+      let runtimeCbhUpdates = typeof cbhNodeUpdates === 'string' ? cbhNodeUpdates : null;
+      const parseCbhNodeUpdates = updates => {
+          if (typeof updates !== 'string') {
+              return null;
+          }
+          try {
+              return new Function('return (' + updates + ');')();
+          } catch (error) {
+              sendDebugLog('failed to parse cbh updates', { error: error?.message });
+              return null;
+          }
+      };
+      let runtimeCbhNodeHandler = parseCbhNodeUpdates(runtimeCbhUpdates);
       window.__contentInsertBridge = message => {
         try {
           const parsed = typeof message === 'string' ? JSON.parse(message) : message;
@@ -67,6 +91,21 @@ export default `
           }
         } catch (error) {
           console.log('Failed to handle content insert message', error);
+        }
+      };
+      window.__cbhNodeUpdatesBridge = message => {
+        try {
+          const parsed = typeof message === 'string' ? JSON.parse(message) : message;
+          if (parsed?.type === 'cbhNodeUpdatesSync' && parsed?.updates) {
+            runtimeCbhUpdates = parsed.updates;
+            runtimeCbhNodeHandler = parseCbhNodeUpdates(runtimeCbhUpdates);
+            if (!runtimeCbhNodeHandler) {
+              return;
+            }
+            cbhNodeRendererRegistry.forEach(renderer => renderer());
+          }
+        } catch (error) {
+          sendDebugLog('failed to handle cbh updates message', { error: error?.message });
         }
       };
 
@@ -94,6 +133,7 @@ export default `
         allowScriptedContent: allowScriptedContent
       });
       rendition.hooks.content.register(function (contents) {
+        initializeCbhNodes(contents);
         insertChapterSummary(contents);
       });
      const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView!== null ? window.ReactNativeWebView: window;
@@ -248,6 +288,87 @@ export default `
               }
           } catch (error) {
               console.log('Failed to insert summary section', error);
+          }
+      }
+
+      function initializeCbhNodes(contents) {
+          try {
+              const href =
+                  contents?.href ||
+                  contents?.document?.baseURI ||
+                  contents?.document?.location?.href;
+              const key = contents?.index ?? href;
+              const initPayload = {
+                  href,
+                  key,
+                  hasDocument: !!contents?.document,
+              };
+              if (!contents || !contents.document) {
+                  return;
+              }
+
+              if (!href || href.startsWith('about:')) {
+                  return;
+              }
+
+              const doc = contents.document;
+              const sectionKey = contents?.index ?? contents?.href ?? Math.random().toString(36).slice(2);
+
+              const delegatedButtonHandler = (event) => {
+                  try {
+                      const target = event.target && event.target.closest && event.target.closest('[cbh-node-button]');
+                      if (!target) {
+                          return;
+                      }
+                      const chapterId = target.getAttribute('data-chapter-id');
+                      const nodeType = target.getAttribute('data-node-type');
+
+                      emitContentInsertEvent({ type: 'cbhNodeButton', chapterId, nodeType });
+                  } catch (error) {
+                      sendDebugLog('failed delegated button handler', { error: error?.message });
+                  }
+              };
+
+              doc.addEventListener('click', delegatedButtonHandler);
+
+              const renderNodes = () => {
+                  const nodes = Array.from(doc.querySelectorAll('[data-cbh-node]'));
+                  if (!runtimeCbhNodeHandler || !nodes.length) {
+                      return;
+                  }
+                  nodes.forEach(node => {
+                      try {
+                          const nodeType = node.getAttribute('data-node-type');
+                          const chapterId = node.getAttribute('data-chapter-id');
+                          const response = runtimeCbhNodeHandler(node);
+                          if (!response) {
+                              return;
+                          }
+
+                          if (response.style) {
+                              node.setAttribute('style', response.style);
+                          }
+
+                          if (typeof response.innerHTML === 'string') {
+                              node.innerHTML = response.innerHTML;
+                          }
+                      } catch (error) {
+                          sendDebugLog('failed to update node', { error: error?.message });
+                      }
+                  });
+              };
+
+              cbhNodeRendererRegistry.set(sectionKey, renderNodes);
+              renderNodes();
+
+              if (typeof contents.on === 'function') {
+                  contents.on('destroy', () => {
+                      cbhNodeRendererRegistry.delete(sectionKey);
+                      doc.removeEventListener('click', delegatedButtonHandler);
+                  });
+              }
+          } catch (error) {
+              sendDebugLog('Failed to initialize cbh nodes', error);
           }
       }
 

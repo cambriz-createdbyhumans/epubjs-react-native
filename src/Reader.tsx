@@ -20,6 +20,7 @@ export function Reader({
   defaultTheme = initialTheme,
   initialLocations,
   contentInserts = [],
+  cbhNodeUpdates,
   allowScriptedContent = Platform.OS === 'ios',
   onPressExternalLink,
   renderLoadingFileComponent = (props) => (
@@ -53,6 +54,7 @@ export function Reader({
   const [templateUrl, setTemplateUrl] = useState<string | null>(null);
   const [allowedUris, setAllowedUris] = useState<string | null>(null);
   const initialContentInsertsRef = useRef(contentInserts);
+  const initialCbhNodeUpdatesRef = useRef(cbhNodeUpdates);
 
   useEffect(() => {
     (async () => {
@@ -106,6 +108,7 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -129,6 +132,7 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -162,6 +166,7 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -191,6 +196,7 @@ export function Reader({
                 fullsize,
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
+                cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
               })
             );
 
@@ -265,6 +271,7 @@ export function Reader({
       flow={flow}
       snap={snap}
       contentInserts={contentInserts}
+      cbhNodeUpdates={cbhNodeUpdates}
       {...rest}
     />
   );
