@@ -113,8 +113,12 @@ export default `
         alert('Failed load book');
       }
 
-      if (type === 'epub' || type === 'opf' || type === 'binary') {
-        book = ePub(file);
+      if (type === 'epub') {
+        book = ePub(file, { openAs: 'epub' });
+      } else if (type === 'opf') {
+        book = ePub(file, { openAs: 'opf' });
+      } else if (type === 'binary') {
+        book = ePub(file, { openAs: 'binary' });
       } else if (type === 'base64') {
         book = ePub(file, { encoding: "base64" });
       } else {
