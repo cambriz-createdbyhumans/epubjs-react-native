@@ -1,4 +1,4 @@
-import WebView from 'react-native-webview';
+import WebView from '@repo/react-native-webview';
 import {
   Annotation,
   AnnotationStyles,

@@ -6,7 +6,7 @@ import 'react-native-gesture-handler/jestSetup';
 
 jest.setTimeout(20000);
 
-jest.mock('react-native-webview', () => {
+jest.mock('@repo/react-native-webview', () => {
   const WebView = require('./src/mocks/react-native-webview');
 
   return WebView;

@@ -19,7 +19,7 @@
     "epubjs"
   ],
   "dependencies": {
-    "react-native-webview": "file:../react-native-webview"
+    "@repo/react-native-webview": "*"
   },
   "peerDependencies": {
     "react": "*",
