@@ -6,12 +6,12 @@ import React, {
   useState,
 } from 'react';
 import { Dimensions, Platform, View as RNView } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@repo/react-native-webview';
 import type {
   ShouldStartLoadRequest,
   WebViewMessageEvent,
   WebViewSingleTapEvent,
-} from 'react-native-webview/lib/WebViewTypes';
+} from '@repo/react-native-webview/lib/WebViewTypes';
 import { defaultTheme as initialTheme, ReaderContext } from './context';
 import type { Bookmark, ReaderProps } from './types';
 import { OpeningBook } from './utils/OpeningBook';

@@ -5,7 +5,7 @@ import React, {
   useReducer,
   useRef,
 } from 'react';
-import type WebView from 'react-native-webview';
+import type WebView from '@repo/react-native-webview';
 import type {
   ePubCfi,
   FontSize,
