@@ -137,6 +137,7 @@ export default `
         allowScriptedContent: allowScriptedContent
       });
       rendition.hooks.content.register(function (contents) {
+        injectCustomStyles(contents);
         initializeCbhNodes(contents);
         insertChapterSummary(contents);
       });
@@ -181,6 +182,62 @@ export default `
               console.log('[ContentInsertEvent] failed to post message', error);
           }
       };
+
+      function injectCustomStyles(contents) {
+          try {
+              if (!contents || !contents.document) {
+                  return;
+              }
+
+              const doc = contents.document;
+              const head = doc.head || doc.getElementsByTagName('head')[0];
+
+              if (!head) {
+                  return;
+              }
+
+              // Inject Google Fonts link
+              const fontLink = doc.createElement('link');
+              fontLink.href = 'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Inter:wght@400;500;700&display=swap';
+              fontLink.rel = 'stylesheet';
+              head.appendChild(fontLink);
+
+              // Inject custom styles
+              const styleElement = doc.createElement('style');
+              styleElement.textContent = \`
+                  .cbh-summary-pill .label {
+                      font-family: "Inter", sans-serif;
+                      color: #3C3C43;
+                      font-size: 13px;
+                      font-style: normal;
+                      font-weight: 400;
+                      line-height: normal;
+                  }
+
+                  .cbh-summary-pill .heading {
+                      font-family: "Barlow", sans-serif;
+                      color: #2B2B2B;
+                      font-feature-settings: 'liga' off, 'clig' off;
+                      font-size: 16px;
+                      font-style: normal;
+                      font-weight: 500;
+                      line-height: 12px;
+                  }
+
+                  .cbh-summary-body p {
+                    color: #2B2B2B !important; /* can probably remove !important once epub body styles are cleaned up */
+                    font-family: Georgia;
+                    font-size: 18px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 160%;
+                  }
+              \`;
+              head.appendChild(styleElement);
+          } catch (error) {
+              console.log('Failed to inject custom styles', error);
+          }
+      }
 
       function insertChapterSummary(contents) {
           try {
@@ -376,7 +433,7 @@ export default `
           }
       }
 
-      
+
       const makeRangeCfi = (a, b) => {
         const CFI = new ePub.CFI()
         const start = CFI.parse(a), end = CFI.parse(b)
