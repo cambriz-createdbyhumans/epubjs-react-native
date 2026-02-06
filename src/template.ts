@@ -205,6 +205,21 @@ export default `
               // Inject custom styles
               const styleElement = doc.createElement('style');
               styleElement.textContent = \`
+                  /* Base image styles - prevent overflow */
+                  img {
+                      max-width: 100% !important;
+                      height: auto !important;
+                      box-sizing: border-box !important;
+                  }
+
+                  /* Constrain floated elements to prevent overflow */
+                  *[style*="float: right"],
+                  *[style*="float:right"],
+                  *[style*="float: left"],
+                  *[style*="float:left"] {
+                      max-width: 50% !important;
+                  }
+
                   .cbh-summary-pill .label {
                       font-family: "Inter", sans-serif;
                       color: #3C3C43;
@@ -231,6 +246,28 @@ export default `
                     font-style: normal;
                     font-weight: 400;
                     line-height: 160%;
+                  }
+
+                  /* Base table styles */
+                  table {
+                      display: block;
+                      width: 100%;
+                      overflow-x: auto;
+                      border-collapse: collapse;
+                      margin: 1em 0;
+                      -webkit-overflow-scrolling: touch;
+                  }
+
+                  table th,
+                  table td {
+                      padding: 8px 12px;
+                      border: 1px solid;
+                      text-align: left;
+                      vertical-align: top;
+                  }
+
+                  table th {
+                      font-weight: 600;
                   }
               \`;
               head.appendChild(styleElement);
