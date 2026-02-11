@@ -31,6 +31,7 @@ export function useInjectWebViewVariables() {
       charactersPerLocation = 1600,
       contentInserts = [],
       cbhNodeUpdates,
+      bottomSpacer,
     }: {
       jszip: string;
       epubjs: string;
@@ -49,6 +50,7 @@ export function useInjectWebViewVariables() {
       charactersPerLocation?: number;
       contentInserts?: ContentInsert[];
       cbhNodeUpdates?: CbhNodeUpdates;
+      bottomSpacer?: number;
     }) => {
       return template
         .replace(
@@ -97,6 +99,10 @@ export function useInjectWebViewVariables() {
         .replace(
           /const cbhNodeUpdates = window.cbh_node_updates;/,
           `const cbhNodeUpdates = ${cbhNodeUpdates ? JSON.stringify(cbhNodeUpdates) : null};`
+        )
+        .replace(
+          /const bottomSpacerHeight = window.bottom_spacer_height;/,
+          `const bottomSpacerHeight = ${bottomSpacer || 0};`
         );
     },
     []

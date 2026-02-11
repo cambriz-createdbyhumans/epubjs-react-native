@@ -508,4 +508,10 @@ export interface ReaderProps {
   charactersPerLocation?: number;
   contentInserts?: ContentInsert[];
   cbhNodeUpdates?: CbhNodeUpdates;
+  /**
+   * Height in pixels for a bottom spacer at the end of each chapter.
+   * Useful for panels that overlay the bottom of the reader.
+   * @example <Reader bottomSpacer={150} />
+   */
+  bottomSpacer?: number;
 }
