@@ -57,6 +57,7 @@ export default `
       const contentInserts = window.content_inserts;
       const runtimeContentInserts = Array.isArray(contentInserts) ? [...contentInserts] : [];
       const cbhNodeUpdates = window.cbh_node_updates;
+      const bottomSpacerHeight = window.bottom_spacer_height;
       const contentRendererRegistry = new Map();
       const cbhNodeRendererRegistry = new Map();
       const sendDebugLog = (message, data) => {
@@ -378,6 +379,18 @@ export default `
 
               contentRendererRegistry.set(sectionKey, renderer);
               renderer(runtimeContentInserts, true);
+
+              // Insert bottom spacer if configured
+              if (bottomSpacerHeight > 0) {
+                  const existingSpacer = doc.body.querySelector('[data-epub-bottom-spacer]');
+                  if (!existingSpacer) {
+                      const spacer = doc.createElement('div');
+                      spacer.setAttribute('data-epub-bottom-spacer', 'true');
+                      spacer.setAttribute('aria-hidden', 'true');
+                      spacer.style.cssText = 'display:block;width:100%;pointer-events:none;background:transparent;height:' + bottomSpacerHeight + 'px';
+                      doc.body.appendChild(spacer);
+                  }
+              }
 
               if (typeof contents.on === 'function') {
                   contents.on('destroy', () => {

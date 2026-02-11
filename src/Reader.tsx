@@ -21,6 +21,7 @@ export function Reader({
   initialLocations,
   contentInserts = [],
   cbhNodeUpdates,
+  bottomSpacer,
   allowScriptedContent = Platform.OS === 'ios',
   onPressExternalLink,
   renderLoadingFileComponent = (props) => (
@@ -109,6 +110,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
+                bottomSpacer,
               })
             );
 
@@ -133,6 +135,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
+                bottomSpacer,
               })
             );
 
@@ -167,6 +170,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
+                bottomSpacer,
               })
             );
 
@@ -197,6 +201,7 @@ export function Reader({
                 charactersPerLocation,
                 contentInserts: initialContentInsertsRef.current,
                 cbhNodeUpdates: initialCbhNodeUpdatesRef.current,
+                bottomSpacer,
               })
             );
 
