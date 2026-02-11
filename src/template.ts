@@ -216,8 +216,24 @@ export default `
                   *[style*="float: right"],
                   *[style*="float:right"],
                   *[style*="float: left"],
-                  *[style*="float:left"] {
+                  *[style*="float:left"],
+                  .figleft,
+                  .figright {
                       max-width: 50% !important;
+                  }
+
+                  .figleft {
+                      margin-right: 1em !important;
+                  }
+
+                  .figright {
+                      margin-left: 1em !important;
+                  }
+
+                  .figcenter {
+                      text-align: center !important;
+                      margin-left: auto !important;
+                      margin-right: auto !important;
                   }
 
                   .cbh-summary-pill .label {
