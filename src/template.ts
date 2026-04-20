@@ -265,6 +265,14 @@ export default `
                     line-height: 160%;
                   }
 
+                  /* Prevent headings from overflowing at large font sizes */
+                  h1, h2, h3, h4, h5, h6 {
+                      overflow-wrap: break-word !important;
+                      word-break: break-word !important;
+                      -webkit-hyphens: auto !important;
+                      hyphens: auto !important;
+                  }
+
                   /* Base table styles */
                   table {
                       display: block;
