@@ -2541,9 +2541,11 @@ export default `
               this.scrollTo(t.left + e, t.top, !0);
             }
             if (e) {
-              let t = r.locationOf(e),
-                i = r.width();
-              this.moveTo(t, i);
+              try {
+                let t = r.locationOf(e),
+                  i = r.width();
+                this.moveTo(t, i);
+              } catch (locErr) {}
             }
             return i.resolve(), n;
           }
