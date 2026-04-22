@@ -11,6 +11,13 @@ export default `
     <script id="epubjs"></script>
 
     <style type="text/css">
+      *::-webkit-scrollbar {
+        display: none;
+      }
+      * {
+        scrollbar-width: none;
+      }
+
       body {
         margin: 0;
       }
