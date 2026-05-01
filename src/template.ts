@@ -148,6 +148,7 @@ export default `
         injectCustomStyles(contents);
         initializeCbhNodes(contents);
         insertChapterSummary(contents);
+        attachSelectionListeners(contents);
       });
      const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView!== null ? window.ReactNativeWebView: window;
       reactNativeWebview.postMessage(JSON.stringify({ type: "onStarted" }));
@@ -515,6 +516,58 @@ export default `
       }
 
 
+      function attachSelectionListeners(contents) {
+        var doc = contents && contents.document;
+        var win = contents && contents.window;
+        if (!doc || !win) return;
+
+        var _deselectedTimeout;
+        var _pointerDownWithSelection = false;
+
+        function onSelectionChange() {
+          _pointerDownWithSelection = false;
+          clearTimeout(_deselectedTimeout);
+          _deselectedTimeout = setTimeout(function () {
+            var sel = win.getSelection();
+            if (!sel || sel.rangeCount === 0 || sel.toString().length === 0) {
+              reactNativeWebview.postMessage(JSON.stringify({ type: 'onDeselected' }));
+            }
+          }, 150);
+        }
+
+        function onPointerDown() {
+          var sel = win.getSelection();
+          _pointerDownWithSelection = Boolean(sel && sel.rangeCount > 0 && sel.toString().length > 0);
+        }
+
+        function onPointerUp() {
+          if (_pointerDownWithSelection) {
+            _pointerDownWithSelection = false;
+            clearTimeout(_deselectedTimeout);
+            reactNativeWebview.postMessage(JSON.stringify({ type: 'onDeselected' }));
+          }
+        }
+
+        function onPointerCancel() {
+          _pointerDownWithSelection = false;
+        }
+
+        doc.addEventListener('selectionchange', onSelectionChange);
+        doc.addEventListener('pointerdown', onPointerDown, true);
+        doc.addEventListener('pointerup', onPointerUp, true);
+        doc.addEventListener('pointercancel', onPointerCancel, true);
+
+        if (typeof contents.on === 'function') {
+          contents.on('destroy', function () {
+            doc.removeEventListener('selectionchange', onSelectionChange);
+            doc.removeEventListener('pointerdown', onPointerDown, true);
+            doc.removeEventListener('pointerup', onPointerUp, true);
+            doc.removeEventListener('pointercancel', onPointerCancel, true);
+            clearTimeout(_deselectedTimeout);
+          });
+        }
+      }
+
       const makeRangeCfi = (a, b) => {
         const CFI = new ePub.CFI()
         const start = CFI.parse(a), end = CFI.parse(b)
@@ -688,7 +741,7 @@ export default `
         }));
       });
 
-      rendition.on("rendered", function (section) {
+      rendition.on("rendered", function (section, view) {
         reactNativeWebview.postMessage(JSON.stringify({
           type: 'onRendered',
           section: section,

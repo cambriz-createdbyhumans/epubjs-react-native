@@ -35,6 +35,7 @@ export function View({
   onSearch = () => {},
   onLocationsReady = () => {},
   onSelected = () => {},
+  onDeselected = () => {},
   onPressAnnotation = () => {},
   onOrientationChange = () => {},
   onLayout = () => {},
@@ -330,6 +331,10 @@ export function View({
 
       setSelectedText({ cfiRange, cfiRangeText: text });
       return onSelected(text, cfiRange);
+    }
+
+    if (type === 'onDeselected') {
+      return onDeselected();
     }
 
     if (type === 'onOrientationChange') {

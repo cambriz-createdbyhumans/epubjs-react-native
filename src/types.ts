@@ -287,6 +287,10 @@ export interface ReaderProps {
    */
   onSelected?: (selectedText: string, cfiRange: ePubCfi) => void;
   /**
+   * Called when the user clears a text selection (tap elsewhere, drag to nothing, programmatic clear, etc.)
+   */
+  onDeselected?: () => void;
+  /**
    * Called when screen orientation change is detected
    * @param {string} orientation
    * @returns {void} void
