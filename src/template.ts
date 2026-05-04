@@ -759,10 +759,32 @@ export default `
       rendition.on("selected", function (cfiRange, contents) {
         book.getRange(cfiRange).then(function (range) {
           if (range) {
+            var BLOCK = { P:1, DIV:1, H1:1, H2:1, H3:1, H4:1, H5:1, H6:1, LI:1, BLOCKQUOTE:1 };
+            var result = { parts: [], needsBreak: false };
+            function walk(node) {
+              if (node.nodeType === 3) {
+                var t = node.textContent.replace(/\\s+/g, ' ');
+                if (!t.trim()) return;
+                if (result.needsBreak && result.parts.length) result.parts.push('\\n\\n');
+                result.needsBreak = false;
+                result.parts.push(t);
+              } else if (node.nodeType === 1) {
+                var name = node.nodeName.toUpperCase();
+                if (name === 'BR') { result.parts.push('\\n'); return; }
+                var isBlock = BLOCK[name];
+                if (isBlock && result.parts.length) result.needsBreak = true;
+                for (var i = 0; i < node.childNodes.length; i++) walk(node.childNodes[i]);
+                if (isBlock) result.needsBreak = true;
+              }
+            }
+            var frag = range.cloneContents();
+            for (var i = 0; i < frag.childNodes.length; i++) walk(frag.childNodes[i]);
+            var html = new XMLSerializer().serializeToString(frag);
             reactNativeWebview.postMessage(JSON.stringify({
               type: 'onSelected',
               cfiRange: cfiRange,
-              text: range.toString(),
+              text: result.parts.join('').trim(),
+              html: html,
             }));
           }
         });

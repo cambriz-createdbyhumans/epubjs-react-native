@@ -327,10 +327,10 @@ export function View({
     }
 
     if (type === 'onSelected') {
-      const { cfiRange, text } = parsedEvent;
+      const { cfiRange, text, html } = parsedEvent;
 
       setSelectedText({ cfiRange, cfiRangeText: text });
-      return onSelected(text, cfiRange);
+      return onSelected(text, cfiRange, html ?? '');
     }
 
     if (type === 'onDeselected') {

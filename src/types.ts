@@ -285,7 +285,7 @@ export interface ReaderProps {
    * @param {SelectedText} selectedText
    * @returns {void} void
    */
-  onSelected?: (selectedText: string, cfiRange: ePubCfi) => void;
+  onSelected?: (selectedText: string, cfiRange: ePubCfi, html: string) => void;
   /**
    * Called when the user clears a text selection (tap elsewhere, drag to nothing, programmatic clear, etc.)
    */
