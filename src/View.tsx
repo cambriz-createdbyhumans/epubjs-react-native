@@ -35,6 +35,7 @@ export function View({
   onSearch = () => {},
   onLocationsReady = () => {},
   onSelected = () => {},
+  onDeselected = () => {},
   onPressAnnotation = () => {},
   onOrientationChange = () => {},
   onLayout = () => {},
@@ -68,6 +69,7 @@ export function View({
   },
   onPressExternalLink,
   menuItems,
+  disableTextHighlightMenu,
   onAddAnnotation = () => {},
   onChangeAnnotations = () => {},
   initialAnnotations,
@@ -324,10 +326,14 @@ export function View({
     }
 
     if (type === 'onSelected') {
-      const { cfiRange, text } = parsedEvent;
+      const { cfiRange, text, html } = parsedEvent;
 
       setSelectedText({ cfiRange, cfiRangeText: text });
-      return onSelected(text, cfiRange);
+      return onSelected(text, cfiRange, html ?? '');
+    }
+
+    if (type === 'onDeselected') {
+      return onDeselected();
     }
 
     if (type === 'onOrientationChange') {
@@ -559,6 +565,7 @@ export function View({
         javaScriptEnabled
         originWhitelist={['*']}
         scrollEnabled={false}
+        disableTextHighlightMenu={disableTextHighlightMenu}
         mixedContentMode="compatibility"
         onMessage={onMessage}
         menuItems={menuItems?.map((item, key) => ({

@@ -205,6 +205,8 @@ type FileSystem = {
 };
 
 export interface ReaderProps {
+  /** Disable the iOS text highlight context menu in the WebView. */
+  disableTextHighlightMenu?: boolean;
   /**
    * Can be a `base64`, `epub`, `opf` or `binary`.
    * @param {object} src
@@ -283,7 +285,11 @@ export interface ReaderProps {
    * @param {SelectedText} selectedText
    * @returns {void} void
    */
-  onSelected?: (selectedText: string, cfiRange: ePubCfi) => void;
+  onSelected?: (selectedText: string, cfiRange: ePubCfi, html: string) => void;
+  /**
+   * Called when the user clears a text selection (tap elsewhere, drag to nothing, programmatic clear, etc.)
+   */
+  onDeselected?: () => void;
   /**
    * Called when screen orientation change is detected
    * @param {string} orientation
