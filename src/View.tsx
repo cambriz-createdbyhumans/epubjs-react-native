@@ -326,10 +326,10 @@ export function View({
     }
 
     if (type === 'onSelected') {
-      const { cfiRange, html } = parsedEvent;
+      const { cfiRange, text, html } = parsedEvent;
 
-      setSelectedText({ cfiRange, cfiRangeText: '' });
-      return onSelected('', cfiRange, html ?? '');
+      setSelectedText({ cfiRange, cfiRangeText: text });
+      return onSelected(text, cfiRange, html ?? '');
     }
 
     if (type === 'onDeselected') {
