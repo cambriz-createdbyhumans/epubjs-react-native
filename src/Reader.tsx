@@ -88,7 +88,7 @@ export function Reader({
 
         if (!isExternalSource) {
           if (isSrcInFs) {
-            setAllowedUris(`${src}${jszipFileUri},${epubjsFileUri}`);
+            setAllowedUris(`${src},${jszipFileUri},${epubjsFileUri}`);
           }
           if (sourceType === SourceType.BASE64) {
             setTemplate(
@@ -120,7 +120,7 @@ export function Reader({
               injectWebViewVariables({
                 jszip: jszipFileUri,
                 epubjs: epubjsFileUri,
-                type: SourceType.BINARY,
+                type: sourceType,
                 book: src,
                 theme: defaultTheme,
                 locations: initialLocations,
