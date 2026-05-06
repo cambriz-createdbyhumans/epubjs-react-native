@@ -281,15 +281,36 @@ export interface ReaderProps {
    */
   onLocationsReady?: (epubKey: string, locations: ePubCfi[]) => void;
   /**
-   * Called once a text selection has occurred
-   * @param {SelectedText} selectedText
-   * @returns {void} void
+   * Fires once per committed selection — after the user lifts their finger
+   * and the selection is stable. Carries the final text, cfiRange, html, and
+   * bounds. Consumers should render selection-anchored UI only in response
+   * to this event, not to in-progress selection changes.
    */
-  onSelected?: (selectedText: string, cfiRange: ePubCfi, html: string) => void;
+  onSelectionReady?: (
+    selectedText: string,
+    cfiRange: ePubCfi,
+    html: string,
+    selectionBounds: { top: number; left: number; bottom: number; right: number } | null,
+  ) => void;
+  /**
+   * Fires when a previously-committed selection begins mutating (e.g. the
+   * user grabbed a handle to adjust). Consumers should hide any
+   * selection-anchored UI until the next onSelectionReady.
+   */
+  onSelectionPending?: () => void;
   /**
    * Called when the user clears a text selection (tap elsewhere, drag to nothing, programmatic clear, etc.)
    */
   onDeselected?: () => void;
+  /**
+   * Fires on the first scroll event (touch-driven, momentum, or programmatic).
+   * Consumers should hide selection-anchored UI until the matching onScrollEnded.
+   */
+  onScrollStarted?: () => void;
+  /**
+   * Fires 150ms after the last scroll event — i.e. when scrolling has settled.
+   */
+  onScrollEnded?: () => void;
   /**
    * Called when screen orientation change is detected
    * @param {string} orientation
@@ -452,6 +473,9 @@ export interface ReaderProps {
      */
     action: (cfiRange: string, text: string) => boolean;
   }>;
+
+  /** When set, presents the native iOS edit menu anchored at the given WebView-relative point. */
+  showMenuAtPoint?: { x: number; y: number } | null;
 
   onAddAnnotation?: (annotation: Annotation) => void;
 
