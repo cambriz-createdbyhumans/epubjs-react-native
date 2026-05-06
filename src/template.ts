@@ -608,11 +608,6 @@ export default `
           var sel = win.getSelection();
           var hasSelection = Boolean(sel && sel.rangeCount > 0 && sel.toString().length > 0);
 
-          reactNativeWebview.postMessage(JSON.stringify({
-            type: 'cbhDebugLog',
-            message: '[template] onSelectionChange hasSelection=' + hasSelection + ' committed=' + _hasCommittedSelection,
-          }));
-
           if (hasSelection) {
             // If a committed selection is now mutating, the user is adjusting
             // (e.g. dragging a handle). Tell the consumer to hide selection UI.
