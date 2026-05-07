@@ -34,8 +34,11 @@ export function View({
   onRendered = () => {},
   onSearch = () => {},
   onLocationsReady = () => {},
-  onSelected = () => {},
+  onSelectionReady = () => {},
+  onSelectionPending = () => {},
   onDeselected = () => {},
+  onScrollStarted = () => {},
+  onScrollEnded = () => {},
   onPressAnnotation = () => {},
   onOrientationChange = () => {},
   onLayout = () => {},
@@ -325,15 +328,27 @@ export function View({
       return onLocationsReady(epubKey, parsedEvent.locations);
     }
 
-    if (type === 'onSelected') {
-      const { cfiRange, text, html } = parsedEvent;
+    if (type === 'onSelectionReady') {
+      const { cfiRange, text, html, selectionBounds } = parsedEvent;
 
       setSelectedText({ cfiRange, cfiRangeText: text });
-      return onSelected(text, cfiRange, html ?? '');
+      return onSelectionReady(text, cfiRange, html ?? '', selectionBounds ?? null);
+    }
+
+    if (type === 'onSelectionPending') {
+      return onSelectionPending();
     }
 
     if (type === 'onDeselected') {
       return onDeselected();
+    }
+
+    if (type === 'onScrollStarted') {
+      return onScrollStarted();
+    }
+
+    if (type === 'onScrollEnded') {
+      return onScrollEnded();
     }
 
     if (type === 'onOrientationChange') {

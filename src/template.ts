@@ -516,57 +516,152 @@ export default `
       }
 
 
+      function captureSelectionBounds(win, doc) {
+        try {
+          var sel = win.getSelection();
+          if (sel && sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            var rects = range.getClientRects();
+            if (rects && rects.length > 0) {
+              var iframeTop = 0, iframeLeft = 0;
+              var frame = doc.defaultView.frameElement;
+              if (frame) {
+                var frameRect = frame.getBoundingClientRect();
+                iframeTop = frameRect.top;
+                iframeLeft = frameRect.left;
+              }
+              var top = rects[0].top + iframeTop;
+              var left = rects[0].left + iframeLeft;
+              var bottom = rects[0].bottom + iframeTop;
+              var right = rects[0].right + iframeLeft;
+              for (var i = 1; i < rects.length; i++) {
+                var t = rects[i].top + iframeTop, l = rects[i].left + iframeLeft;
+                var b = rects[i].bottom + iframeTop, r = rects[i].right + iframeLeft;
+                if (t < top) top = t;
+                if (l < left) left = l;
+                if (b > bottom) bottom = b;
+                if (r > right) right = r;
+              }
+              return { top: top, left: left, bottom: bottom, right: right };
+            }
+          }
+        } catch (e) {}
+        return null;
+      }
+
+      // Selection lifecycle state shared by attachSelectionListeners and the
+      // rendition.on("selected") handler below.
+      //
+      // epubjs fires "selected" whenever its internal selectionchange debounce
+      // stabilizes — which happens when the user pauses their finger, not
+      // only when they release. To avoid showing selection-anchored UI
+      // mid-gesture, we gate the emission on actual touch events: if the
+      // finger is still down when "selected" resolves, stash the payload and
+      // flush on touchend.
+      var _hasCommittedSelection = false;
+      var _lastEmittedCfi = null;
+      var _pointerDown = false;
+      var _pendingReadyPayload = null;
+
+      // Scroll lifecycle: a single flag + debounced timeout turn the raw
+      // scroll firehose into an onScrollStarted / onScrollEnded edge pair.
+      var _isScrolling = false;
+      var _scrollEndTimeout;
+
+      function onScrollTick() {
+        if (!_isScrolling) {
+          _isScrolling = true;
+          reactNativeWebview.postMessage(JSON.stringify({ type: 'onScrollStarted' }));
+        }
+        clearTimeout(_scrollEndTimeout);
+        _scrollEndTimeout = setTimeout(function () {
+          _isScrolling = false;
+          reactNativeWebview.postMessage(JSON.stringify({ type: 'onScrollEnded' }));
+        }, 150);
+      }
+
+      function flushPendingReady() {
+        if (!_pendingReadyPayload) return;
+        var p = _pendingReadyPayload;
+        _pendingReadyPayload = null;
+        _hasCommittedSelection = true;
+        _lastEmittedCfi = p.cfiRange;
+        reactNativeWebview.postMessage(JSON.stringify({
+          type: 'onSelectionReady',
+          cfiRange: p.cfiRange,
+          text: p.text,
+          html: p.html,
+          selectionBounds: p.selectionBounds,
+        }));
+      }
+
       function attachSelectionListeners(contents) {
         var doc = contents && contents.document;
         var win = contents && contents.window;
         if (!doc || !win) return;
 
         var _deselectedTimeout;
-        var _pointerDownWithSelection = false;
 
         function onSelectionChange() {
-          _pointerDownWithSelection = false;
           clearTimeout(_deselectedTimeout);
-          _deselectedTimeout = setTimeout(function () {
-            var sel = win.getSelection();
-            if (!sel || sel.rangeCount === 0 || sel.toString().length === 0) {
-              reactNativeWebview.postMessage(JSON.stringify({ type: 'onDeselected' }));
-            }
-          }, 150);
-        }
 
-        function onPointerDown() {
           var sel = win.getSelection();
-          _pointerDownWithSelection = Boolean(sel && sel.rangeCount > 0 && sel.toString().length > 0);
-        }
+          var hasSelection = Boolean(sel && sel.rangeCount > 0 && sel.toString().length > 0);
 
-        function onPointerUp() {
-          if (_pointerDownWithSelection) {
-            _pointerDownWithSelection = false;
-            clearTimeout(_deselectedTimeout);
-            reactNativeWebview.postMessage(JSON.stringify({ type: 'onDeselected' }));
+          if (hasSelection) {
+            // If a committed selection is now mutating, the user is adjusting
+            // (e.g. dragging a handle). Tell the consumer to hide selection UI.
+            // Fresh drags don't emit pending — no committed selection yet.
+            if (_hasCommittedSelection) {
+              _hasCommittedSelection = false;
+              _lastEmittedCfi = null;
+              reactNativeWebview.postMessage(JSON.stringify({ type: 'onSelectionPending' }));
+            }
+          } else {
+            _deselectedTimeout = setTimeout(function () {
+              var sel2 = win.getSelection();
+              if (!sel2 || sel2.rangeCount === 0 || sel2.toString().length === 0) {
+                _hasCommittedSelection = false;
+                _lastEmittedCfi = null;
+                _pendingReadyPayload = null;
+                reactNativeWebview.postMessage(JSON.stringify({ type: 'onDeselected' }));
+              }
+            }, 150);
           }
         }
 
-        function onPointerCancel() {
-          _pointerDownWithSelection = false;
-        }
+        function onTouchStart() { _pointerDown = true; }
+        function onTouchEnd() { _pointerDown = false; flushPendingReady(); }
+        function onTouchCancel() { _pointerDown = false; _pendingReadyPayload = null; }
 
         doc.addEventListener('selectionchange', onSelectionChange);
-        doc.addEventListener('pointerdown', onPointerDown, true);
-        doc.addEventListener('pointerup', onPointerUp, true);
-        doc.addEventListener('pointercancel', onPointerCancel, true);
+        doc.addEventListener('touchstart', onTouchStart, true);
+        doc.addEventListener('touchend', onTouchEnd, true);
+        doc.addEventListener('touchcancel', onTouchCancel, true);
+        // Pointer events as a fallback for non-touch inputs (rare in our app
+        // but cheap to support and harmless alongside the touch listeners).
+        doc.addEventListener('pointerdown', onTouchStart, true);
+        doc.addEventListener('pointerup', onTouchEnd, true);
+        doc.addEventListener('pointercancel', onTouchCancel, true);
 
         if (typeof contents.on === 'function') {
           contents.on('destroy', function () {
             doc.removeEventListener('selectionchange', onSelectionChange);
-            doc.removeEventListener('pointerdown', onPointerDown, true);
-            doc.removeEventListener('pointerup', onPointerUp, true);
-            doc.removeEventListener('pointercancel', onPointerCancel, true);
+            doc.removeEventListener('touchstart', onTouchStart, true);
+            doc.removeEventListener('touchend', onTouchEnd, true);
+            doc.removeEventListener('touchcancel', onTouchCancel, true);
+            doc.removeEventListener('pointerdown', onTouchStart, true);
+            doc.removeEventListener('pointerup', onTouchEnd, true);
+            doc.removeEventListener('pointercancel', onTouchCancel, true);
             clearTimeout(_deselectedTimeout);
           });
         }
       }
+
+      // Outer-document scroll listener (capture-phase catches scroll from
+      // same-origin descendants, which is where epubjs-continuous actually
+      // scrolls — verified via instrumentation).
+      document.addEventListener('scroll', onScrollTick, { capture: true, passive: true });
 
       const makeRangeCfi = (a, b) => {
         const CFI = new ePub.CFI()
@@ -757,16 +852,29 @@ export default `
       });
 
       rendition.on("selected", function (cfiRange, contents) {
+        // epubjs fires "selected" whenever its internal selection debounce
+        // stabilizes — which happens when the user pauses mid-drag as well
+        // as when they release. We gate the emission on actual touch state:
+        // if the finger is down, stash the payload; touchend flushes it.
+        var selectionBounds = captureSelectionBounds(contents.window, contents.document);
+
         book.getRange(cfiRange).then(function (range) {
-          if (range) {
-            var html = new XMLSerializer().serializeToString(range.cloneContents());
-            reactNativeWebview.postMessage(JSON.stringify({
-              type: 'onSelected',
-              cfiRange: cfiRange,
-              text: range.toString(),
-              html: html,
-            }));
+          if (!range) return;
+          var payload = {
+            cfiRange: cfiRange,
+            text: range.toString(),
+            html: new XMLSerializer().serializeToString(range.cloneContents()),
+            selectionBounds: selectionBounds,
+          };
+          if (_pointerDown) {
+            // Finger still down — wait for touchend to flush. Overwrite any
+            // earlier pending payload; we only care about the latest.
+            _pendingReadyPayload = payload;
+            return;
           }
+          // Finger is up — emit immediately.
+          _pendingReadyPayload = payload;
+          flushPendingReady();
         });
       });
 
@@ -775,6 +883,9 @@ export default `
         const annotation = annotations.find(item => item.cfiRange === cfiRange);
 
         if (annotation) {
+          // Suppress the sibling single-tap (which toggles chrome like the
+          // header). Same mechanism used for embedded interactive elements.
+          reactNativeWebview.postMessage(JSON.stringify({ type: 'interactiveTap' }));
           reactNativeWebview.postMessage(JSON.stringify({
             type: 'onPressAnnotation',
             annotation: ${webViewJavaScriptFunctions.mapObjectToAnnotation('annotation')}
