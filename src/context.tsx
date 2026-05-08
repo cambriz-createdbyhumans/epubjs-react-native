@@ -1099,12 +1099,52 @@ function ReaderProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const removeSelection = useCallback(() => {
+    // iOS keeps a separate UITextInteractionAssistant state (the
+    // selection-handle + adjustment anchor) that survives
+    // removeAllRanges(). Left alone, long-presses near the prior
+    // selection are interpreted as "adjust" instead of "start fresh",
+    // until the WebView resigns first responder (e.g. app backgrounded).
+    // Briefly focusing an off-screen input re-targets the assistant so
+    // it tears down the anchor immediately.
     webViewInjectFunctions.injectJavaScript(
       book,
       `
-        const getSelections = () => rendition.getContents().map(contents => contents.window.getSelection());
-        const clearSelection = () => getSelections().forEach(s => s.removeAllRanges());
-        clearSelection();
+        (function () {
+          var contents = rendition.getContents();
+          contents.forEach(function (c) {
+            try { c.window.getSelection().removeAllRanges(); } catch (e) {}
+          });
+
+          function poke(doc) {
+            if (!doc || !doc.body) return;
+            try {
+              // A focusable non-input element — focusing an <input> causes
+              // iOS to zoom to it (text-field autozoom); a <div tabindex="-1">
+              // still swaps focus so UITextInteractionAssistant tears down,
+              // without the zoom.
+              var el = doc.createElement('div');
+              el.setAttribute('aria-hidden', 'true');
+              el.setAttribute('tabindex', '-1');
+              el.style.position = 'fixed';
+              el.style.top = '0';
+              el.style.left = '0';
+              el.style.width = '1px';
+              el.style.height = '1px';
+              el.style.opacity = '0';
+              el.style.pointerEvents = 'none';
+              doc.body.appendChild(el);
+              // preventScroll stops the browser from scrolling this element
+              // into view — without it, continuous-flow epubs scroll to the
+              // top of the chapter when we focus the poke element.
+              el.focus({ preventScroll: true });
+              setTimeout(function () {
+                try { el.blur(); el.remove(); } catch (e) {}
+              }, 50);
+            } catch (e) {}
+          }
+          poke(document);
+          contents.forEach(function (c) { if (c) poke(c.document); });
+        })();
     `
     );
   }, []);
