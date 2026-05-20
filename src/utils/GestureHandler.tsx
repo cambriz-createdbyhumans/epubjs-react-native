@@ -5,7 +5,6 @@ import {
 	GestureDetector,
 	Gesture,
 	Directions,
-	TouchableWithoutFeedback,
 } from "react-native-gesture-handler"
 
 interface Props {
@@ -57,45 +56,18 @@ export function GestureHandler({
 
 	const swipeDown = Gesture.Fling().runOnJS(true).direction(Directions.DOWN).onStart(onSwipeDown)
 
-	let lastTap: number | null = null
-	let timer: NodeJS.Timeout
-
-	const handleDoubleTap = () => {
-		if (lastTap) {
-			onDoubleTap()
-			clearTimeout(timer)
-			lastTap = null
-		} else {
-			lastTap = Date.now()
-			timer = setTimeout(() => {
-				onSingleTap()
-				lastTap = null
-				clearTimeout(timer)
-			}, 500)
-		}
-	}
-
 	if (Platform.OS === "ios") {
+		// On iOS, only horizontal swipes are wired to app behavior (pagination).
+		// LongPress/DoubleTap/SingleTap and vertical Flings here used to compete
+		// with WebKit's native text-selection long-press inside the WebView,
+		// which intermittently swallowed selection. Native single-tap is
+		// delivered via the WebView's onSingleTap callback; native double-tap
+		// is suppressed in RNCWebViewDoubleTapSuppression.m; long-press for
+		// text selection is owned by WebKit.
 		return (
 			<GestureHandlerRootView style={{ flex: 1 }}>
-				<GestureDetector
-					gesture={Gesture.Exclusive(
-						swipeLeft,
-						swipeRight,
-						swipeUp,
-						swipeDown,
-						longPress,
-						doubleTap,
-						singleTap,
-					)}
-				>
-					<TouchableWithoutFeedback
-						style={{ width, height }}
-						onPress={() => Platform.OS === "ios" && handleDoubleTap()}
-						onLongPress={() => Platform.OS === "ios" && onLongPress()}
-					>
-						{children}
-					</TouchableWithoutFeedback>
+				<GestureDetector gesture={Gesture.Exclusive(swipeLeft, swipeRight)}>
+					<View style={{ width, height }}>{children}</View>
 				</GestureDetector>
 			</GestureHandlerRootView>
 		)
