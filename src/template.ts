@@ -133,6 +133,12 @@ export default `
         alert('Missing file type');
       }
 
+      // Expose the epub.js Book on window so externally-injected scripts
+      // (e.g. CHAPTER_PROGRESS_SCRIPT) can access it. The lexical 'book'
+      // declared with let above is otherwise invisible across script
+      // boundaries.
+      window.__cbhBook = book;
+
       rendition = book.renderTo("viewer", {
         width: "100%",
         height: "100%",
@@ -144,6 +150,10 @@ export default `
         allowPopups: allowPopups,
         allowScriptedContent: allowScriptedContent
       });
+
+      // Expose the rendition too, so externally-injected scripts can reach the
+      // scrolling stage container for pixel-accurate progress measurement.
+      window.__cbhRendition = rendition;
       rendition.hooks.content.register(function (contents) {
         injectCustomStyles(contents);
         initializeCbhNodes(contents);
