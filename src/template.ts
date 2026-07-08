@@ -804,7 +804,7 @@ export default `
         .catch(function (err) {
           reactNativeWebview.postMessage(JSON.stringify({
           type: "onDisplayError",
-          reason: reason
+          reason: String(err)
         }));
       });
 

@@ -29,6 +29,7 @@ export function View({
   onStarted = () => {},
   onReady = () => {},
   onDisplayError = () => {},
+  onWebViewProcessTerminated,
   onResized = () => {},
   onLocationChange = () => {},
   onRendered = () => {},
@@ -332,7 +333,12 @@ export function View({
       const { cfiRange, text, html, selectionBounds } = parsedEvent;
 
       setSelectedText({ cfiRange, cfiRangeText: text });
-      return onSelectionReady(text, cfiRange, html ?? '', selectionBounds ?? null);
+      return onSelectionReady(
+        text,
+        cfiRange,
+        html ?? '',
+        selectionBounds ?? null
+      );
     }
 
     if (type === 'onSelectionPending') {
@@ -606,7 +612,17 @@ export function View({
           backgroundColor: theme.body.background,
           height,
         }}
-        onSingleTap={isNativeSingleTapAvailable ? handleNativeSingleTap : undefined}
+        onSingleTap={
+          isNativeSingleTapAvailable ? handleNativeSingleTap : undefined
+        }
+        onContentProcessDidTerminate={() => {
+          book.current?.reload();
+          onWebViewProcessTerminated?.();
+        }}
+        onRenderProcessGone={() => {
+          book.current?.reload();
+          onWebViewProcessTerminated?.();
+        }}
       />
     </GestureHandler>
   );
