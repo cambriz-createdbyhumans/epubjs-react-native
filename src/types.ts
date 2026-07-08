@@ -248,6 +248,10 @@ export interface ReaderProps {
    */
   onDisplayError?: (reason: string) => void;
   /**
+   * Called when the WebView content process is terminated by the OS (iOS) or renderer crashes (Android).
+   */
+  onWebViewProcessTerminated?: () => void;
+  /**
    * Emit that the rendition has been resized
    * @param {any} layout
    * @returns {void} void
@@ -290,7 +294,12 @@ export interface ReaderProps {
     selectedText: string,
     cfiRange: ePubCfi,
     html: string,
-    selectionBounds: { top: number; left: number; bottom: number; right: number } | null,
+    selectionBounds: {
+      top: number;
+      left: number;
+      bottom: number;
+      right: number;
+    } | null
   ) => void;
   /**
    * Fires when a previously-committed selection begins mutating (e.g. the
