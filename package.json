@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "lint": "echo \"(disabled for internal fork)\"",
-    "test": "jest --config jest.config.js"
+    "test": "echo \"(no tests in internal fork)\""
   },
   "keywords": [
     "react-native",
