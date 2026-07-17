@@ -4134,7 +4134,29 @@ export default `
               JSON.stringify(t),
             ),
             e = new Set(t);
-          return Array.from(e).map((t) => JSON.parse(t));
+          const rects = Array.from(e).map((t) => JSON.parse(t));
+          // Drop spurious full-width block rects WebKit returns for
+          // fully-enclosed middle blocks in a multi-paragraph selection —
+          // otherwise they paint over the whole paragraph width and stack on
+          // the line rects as a darker "double highlight". Reference
+          // implementation + rationale: src/utils/filterContainedRects.ts.
+          const TOLERANCE = 1;
+          const contains = (outer, inner) =>
+            outer.left <= inner.left + TOLERANCE &&
+            outer.right >= inner.right - TOLERANCE &&
+            outer.top <= inner.top + TOLERANCE &&
+            outer.bottom >= inner.bottom - TOLERANCE &&
+            (outer.width > inner.width + TOLERANCE ||
+              outer.height > inner.height + TOLERANCE);
+          const nonEmpty = rects.filter(
+            (rect) => rect.width > TOLERANCE && rect.height > TOLERANCE,
+          );
+          return nonEmpty.filter(
+            (candidate) =>
+              !nonEmpty.some(
+                (other) => other !== candidate && contains(candidate, other),
+              ),
+          );
         }
       }
       e.Mark = o;
