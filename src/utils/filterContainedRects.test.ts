@@ -119,6 +119,23 @@ describe('filterContainedRects', () => {
     expect(result).toEqual([validRect]);
   });
 
+  it('keeps thin sub-pixel rects (only zero-area rects are dropped)', () => {
+    // A 1px-tall rect is a valid selection fragment, not empty — the filter
+    // must not drop it (regression: an earlier `> 1px` cutoff removed these).
+    const thinRect: RectLike = {
+      top: 100,
+      left: 20,
+      bottom: 101,
+      right: 200,
+      width: 180,
+      height: 1,
+    };
+
+    const result = filterContainedRects([thinRect]);
+
+    expect(result).toEqual([thinRect]);
+  });
+
   it('drops rect that contains another even with 1px sub-pixel tolerance', () => {
     // A slightly larger outer rect that contains an inner rect within tolerance
     const outerRect: RectLike = {
