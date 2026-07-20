@@ -4134,7 +4134,29 @@ export default `
               JSON.stringify(t),
             ),
             e = new Set(t);
-          return Array.from(e).map((t) => JSON.parse(t));
+          const rects = Array.from(e).map((t) => JSON.parse(t));
+          // Drop spurious full-width block rects WebKit returns for enclosed
+          // middle blocks in a multi-paragraph selection — they shade the whole
+          // paragraph and stack as a darker "double highlight". Same-line text
+          // rects are horizontally disjoint, so a rect that contains another can
+          // only be the block rect; keep a 1px tolerance for sub-pixel jitter.
+          const TOLERANCE = 1;
+          const contains = (outer, inner) =>
+            outer.left <= inner.left + TOLERANCE &&
+            outer.right >= inner.right - TOLERANCE &&
+            outer.top <= inner.top + TOLERANCE &&
+            outer.bottom >= inner.bottom - TOLERANCE &&
+            (outer.width > inner.width + TOLERANCE ||
+              outer.height > inner.height + TOLERANCE);
+          const nonEmpty = rects.filter(
+            (rect) => rect.width > 0 && rect.height > 0,
+          );
+          return nonEmpty.filter(
+            (candidate) =>
+              !nonEmpty.some(
+                (other) => other !== candidate && contains(candidate, other),
+              ),
+          );
         }
       }
       e.Mark = o;
