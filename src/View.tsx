@@ -60,13 +60,7 @@ export function View({
   onSwipeUp = () => {},
   onSwipeDown = () => {},
   defaultTheme = initialTheme,
-  renderOpeningBookComponent = () => (
-    <OpeningBook
-      width={width}
-      height={height}
-      backgroundColor={defaultTheme.body.background}
-    />
-  ),
+  renderOpeningBookComponent,
   openingBookComponentContainerStyle = {
     width: width || Dimensions.get('screen').width,
     height: height || Dimensions.get('screen').height,
@@ -234,7 +228,7 @@ export function View({
     if (type === 'onStarted') {
       setIsRendering(true);
 
-      changeTheme(defaultTheme);
+      changeTheme(theme || defaultTheme);
       sendContentInsertSync(contentInserts);
       if (typeof cbhNodeUpdates === 'string') {
         sendCbhNodeUpdatesSync(cbhNodeUpdates);
@@ -575,7 +569,13 @@ export function View({
             zIndex: 2,
           }}
         >
-          {renderOpeningBookComponent()}
+          {renderOpeningBookComponent ? renderOpeningBookComponent() : (
+            <OpeningBook
+              width={width}
+              height={height}
+              backgroundColor={theme?.body?.background || defaultTheme.body.background}
+            />
+          )}
         </RNView>
       )}
 

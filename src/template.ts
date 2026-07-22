@@ -808,10 +808,8 @@ export default `
         }));
       });
 
-      rendition.on('started', () => {
-        rendition.themes.register({ theme: theme });
-        rendition.themes.select('theme');
-      });
+      rendition.themes.register({ theme: theme });
+      rendition.themes.select('theme');
 
       rendition.on("relocated", function (location) {
         var percent = book.locations.percentageFromCfi(location.start.cfi);
