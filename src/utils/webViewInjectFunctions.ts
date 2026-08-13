@@ -14,7 +14,9 @@ export function injectJavaScript(
     try {
       const rendition = window.__cbhRendition;
       const book = window.__cbhBook;
-      ${script}
+      if (rendition) {
+        ${script}
+      }
     } catch (error) {
       alert(error?.message);
     }
