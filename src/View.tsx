@@ -29,6 +29,7 @@ export function View({
   onStarted = () => {},
   onReady = () => {},
   onDisplayError = () => {},
+  onGoToLocationError = () => {},
   onWebViewProcessTerminated,
   onResized = () => {},
   onLocationChange = () => {},
@@ -248,7 +249,7 @@ export function View({
       }
 
       if (initialLocation) {
-        goToLocation(initialLocation);
+        goToLocation(initialLocation, 'initial');
       }
 
       if (injectedJavascript) {
@@ -263,6 +264,12 @@ export function View({
       setIsRendering(false);
 
       return onDisplayError(reason);
+    }
+
+    if (type === 'onGoToLocationError') {
+      const { reason, target, source } = parsedEvent;
+
+      return onGoToLocationError(reason, target, source);
     }
 
     if (type === 'onResized') {
@@ -497,7 +504,7 @@ export function View({
       request.mainDocumentURL &&
       request.url !== request.mainDocumentURL
     ) {
-      goToLocation(request.url.replace(request.mainDocumentURL, ''));
+      goToLocation(request.url.replace(request.mainDocumentURL, ''), 'link');
     }
 
     if (

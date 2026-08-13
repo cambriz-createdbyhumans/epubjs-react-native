@@ -248,6 +248,14 @@ export interface ReaderProps {
    */
   onDisplayError?: (reason: string) => void;
   /**
+   * Called when navigating to a location fails (invalid/non-existent target or render failure)
+   * @param {string} reason
+   * @param {string} target the href/CFI that failed to display
+   * @param {string} source what triggered the navigation (e.g. "toc", "initial")
+   * @returns {void} void
+   */
+  onGoToLocationError?: (reason: string, target: string, source: string) => void;
+  /**
    * Called when the WebView content process is terminated by the OS (iOS) or renderer crashes (Android).
    */
   onWebViewProcessTerminated?: () => void;
