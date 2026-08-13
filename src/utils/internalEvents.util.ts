@@ -3,6 +3,7 @@ const INTERNAL_EVENTS = [
   'onStarted',
   'onReady',
   'onDisplayError',
+  'onGoToLocationError',
   'onResized',
   'onLocationChange',
   'onSearch',

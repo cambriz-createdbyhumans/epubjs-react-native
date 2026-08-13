@@ -328,8 +328,9 @@ export interface ReaderContextProps {
   /**
    * Go to specific location in the book
    * @param {ePubCfi} target {@link ePubCfi}
+   * @param {string} source what triggered the navigation, reported on failure (e.g. "toc", "initial")
    */
-  goToLocation: (cfi: ePubCfi) => void;
+  goToLocation: (cfi: ePubCfi, source?: string) => void;
 
   /**
    * Go to previous page in the book
@@ -801,9 +802,33 @@ function ReaderProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: Types.SET_IS_RENDERING, payload: isRendering });
   }, []);
 
-  const goToLocation = useCallback((targetCfi: ePubCfi) => {
-    book.current?.injectJavaScript(`rendition.display('${targetCfi}'); true`);
-  }, []);
+  const goToLocation = useCallback(
+    (targetCfi: ePubCfi, source: string = 'programmatic') => {
+      book.current?.injectJavaScript(`
+      (function () {
+        const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView !== null ? window.ReactNativeWebView : window;
+        const target = ${JSON.stringify(targetCfi)};
+        const source = ${JSON.stringify(source)};
+        let reported = false;
+        const reportGoToLocationError = (reason) => {
+          if (reported) return;
+          reported = true;
+          rendition.off('displayerror', onDisplayError);
+          reactNativeWebview.postMessage(
+            JSON.stringify({ type: 'onGoToLocationError', reason: String(reason), target, source })
+          );
+        };
+        const onDisplayError = (err) => reportGoToLocationError(err?.message || err);
+        rendition.on('displayerror', onDisplayError);
+        rendition.display(target)
+          .then(() => rendition.off('displayerror', onDisplayError))
+          .catch(reportGoToLocationError);
+      })();
+      true;
+    `);
+    },
+    []
+  );
 
   const goPrevious = useCallback(
     (options?: PaginateOptions) => {
