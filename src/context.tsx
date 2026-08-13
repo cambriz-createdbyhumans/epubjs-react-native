@@ -732,25 +732,37 @@ function ReaderProvider({ children }: { children: React.ReactNode }) {
 
   const changeTheme = useCallback((theme: Theme) => {
     book.current?.injectJavaScript(`
-      rendition.themes.register({ theme: ${JSON.stringify(theme)} });
-      rendition.themes.select('theme');
-      rendition.views().forEach(view => view.pane ? view.pane.render() : null); true;
+      (function () {
+        var rendition = window.__cbhRendition;
+        if (!rendition) return;
+        rendition.themes.register({ theme: ${JSON.stringify(theme)} });
+        rendition.themes.select('theme');
+        rendition.views().forEach(view => view.pane ? view.pane.render() : null);
+      })(); true;
     `);
     dispatch({ type: Types.CHANGE_THEME, payload: theme });
   }, []);
 
   const changeFontFamily = useCallback((fontFamily: string) => {
     book.current?.injectJavaScript(`
-      rendition.themes.font('${fontFamily}');
-      rendition.views().forEach(view => view.pane ? view.pane.render() : null); true;
+      (function () {
+        var rendition = window.__cbhRendition;
+        if (!rendition) return;
+        rendition.themes.font('${fontFamily}');
+        rendition.views().forEach(view => view.pane ? view.pane.render() : null);
+      })(); true;
     `);
     dispatch({ type: Types.CHANGE_FONT_FAMILY, payload: fontFamily });
   }, []);
 
   const changeFontSize = useCallback((size: FontSize) => {
     book.current?.injectJavaScript(`
-      rendition.themes.fontSize('${size}');
-      rendition.views().forEach(view => view.pane ? view.pane.render() : null); true;
+      (function () {
+        var rendition = window.__cbhRendition;
+        if (!rendition) return;
+        rendition.themes.fontSize('${size}');
+        rendition.views().forEach(view => view.pane ? view.pane.render() : null);
+      })(); true;
     `);
     dispatch({ type: Types.CHANGE_FONT_SIZE, payload: size });
   }, []);
@@ -806,6 +818,8 @@ function ReaderProvider({ children }: { children: React.ReactNode }) {
     (targetCfi: ePubCfi, source: string = 'programmatic') => {
       book.current?.injectJavaScript(`
       (function () {
+        var rendition = window.__cbhRendition;
+        if (!rendition) return;
         const reactNativeWebview = window.ReactNativeWebView !== undefined && window.ReactNativeWebView !== null ? window.ReactNativeWebView : window;
         const target = ${JSON.stringify(targetCfi)};
         const source = ${JSON.stringify(source)};
