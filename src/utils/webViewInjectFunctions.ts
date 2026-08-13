@@ -12,6 +12,8 @@ export function injectJavaScript(
 ) {
   ref.current?.injectJavaScript(`
     try {
+      const rendition = window.__cbhRendition;
+      const book = window.__cbhBook;
       ${script}
     } catch (error) {
       alert(error?.message);
