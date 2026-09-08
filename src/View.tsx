@@ -543,18 +543,18 @@ export function View({
       onLongPress={onLongPress}
       onSwipeLeft={() => {
         if (enableSwipe) {
+          onSwipeLeft();
           goNext({
             keepScrollOffset: keepScrollOffsetOnLocationChange,
           });
-          onSwipeLeft();
         }
       }}
       onSwipeRight={() => {
         if (enableSwipe) {
+          onSwipeRight();
           goPrevious({
             keepScrollOffset: keepScrollOffsetOnLocationChange,
           });
-          onSwipeRight();
         }
       }}
       onSwipeUp={() => {
