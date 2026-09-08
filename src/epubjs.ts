@@ -4051,6 +4051,7 @@ export default `
             (this.element = n.default.createElement("svg")),
             (this.marks = []),
             (this.element.style.position = "absolute"),
+            (this.element.style.mixBlendMode = "multiply"),
             this.element.setAttribute("pointer-events", "none"),
             r.default.proxyMouse(this.target, this.marks),
             (this.container = e),
@@ -5888,8 +5889,7 @@ export default `
           const o = Object.assign(
             {
               fill: "yellow",
-              "fill-opacity": "0.3",
-              "mix-blend-mode": "multiply",
+              "fill-opacity": "1",
             },
             r,
           );
@@ -5919,8 +5919,7 @@ export default `
           const o = Object.assign(
             {
               stroke: "black",
-              "stroke-opacity": "0.3",
-              "mix-blend-mode": "multiply",
+              "stroke-opacity": "1",
             },
             r,
           );

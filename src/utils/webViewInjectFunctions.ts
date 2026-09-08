@@ -34,14 +34,14 @@ export function mapAnnotationStylesToEpubStyles(
   if (type === 'highlight') {
     epubStyles = {
       'fill': styles?.color || 'yellow',
-      'fill-opacity': styles?.opacity || 0.3,
+      'fill-opacity': styles?.opacity || 1,
     };
   }
 
   if (type === 'underline') {
     epubStyles = {
       'stroke': styles?.color || 'yellow',
-      'stroke-opacity': styles?.opacity || 0.3,
+      'stroke-opacity': styles?.opacity || 1,
       'stroke-width': styles?.thickness || 1,
     };
   }
@@ -250,14 +250,14 @@ export function updateAnnotationByTagId(
           if (annotation.type === 'highlight') {
             epubStyles = {
               'fill': styles?.color || 'yellow',
-              'fill-opacity': styles?.opacity || 0.3,
+              'fill-opacity': styles?.opacity || 1,
             };
           }
 
           if (annotation.type === 'underline') {
             epubStyles = {
               'stroke': styles?.color || 'yellow',
-              'stroke-opacity': styles?.opacity || 0.3,
+              'stroke-opacity': styles?.opacity || 1,
               'stroke-width': styles?.thickness || 1,
             };
           }
