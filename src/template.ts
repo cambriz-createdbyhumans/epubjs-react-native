@@ -65,6 +65,7 @@ export default `
       const runtimeContentInserts = Array.isArray(contentInserts) ? [...contentInserts] : [];
       const cbhNodeUpdates = window.cbh_node_updates;
       const bottomSpacerHeight = window.bottom_spacer_height;
+      const readingAnchorRatio = window.reading_anchor_ratio;
       const contentRendererRegistry = new Map();
       const cbhNodeRendererRegistry = new Map();
       const sendDebugLog = (message, data) => {
@@ -148,7 +149,8 @@ export default `
         spread: undefined,
         fullsize: undefined,
         allowPopups: allowPopups,
-        allowScriptedContent: allowScriptedContent
+        allowScriptedContent: allowScriptedContent,
+        anchorRatio: readingAnchorRatio
       });
 
       // Expose the rendition too, so externally-injected scripts can reach the

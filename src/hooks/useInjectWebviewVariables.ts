@@ -32,6 +32,7 @@ export function useInjectWebViewVariables() {
       contentInserts = [],
       cbhNodeUpdates,
       bottomSpacer,
+      readingAnchorRatio,
     }: {
       jszip: string;
       epubjs: string;
@@ -51,6 +52,7 @@ export function useInjectWebViewVariables() {
       contentInserts?: ContentInsert[];
       cbhNodeUpdates?: CbhNodeUpdates;
       bottomSpacer?: number;
+      readingAnchorRatio?: number;
     }) => {
       return template
         .replace(
@@ -103,6 +105,10 @@ export function useInjectWebViewVariables() {
         .replace(
           /const bottomSpacerHeight = window.bottom_spacer_height;/,
           `const bottomSpacerHeight = ${bottomSpacer || 0};`
+        )
+        .replace(
+          /const readingAnchorRatio = window.reading_anchor_ratio;/,
+          `const readingAnchorRatio = ${readingAnchorRatio || 0};`
         );
     },
     []

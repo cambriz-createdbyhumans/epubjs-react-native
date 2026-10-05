@@ -561,4 +561,10 @@ export interface ReaderProps {
    * @example <Reader bottomSpacer={150} />
    */
   bottomSpacer?: number;
+  /**
+   * Fraction of the viewport height (0-1) used as the reading line in scrolled
+   * mode: the reported location starts there and display(cfi) places the target there.
+   * @default 0
+   */
+  readingAnchorRatio?: number;
 }

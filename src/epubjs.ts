@@ -2830,8 +2830,24 @@ export default `
             n = e.width < window.innerWidth ? e.width : window.innerWidth,
             r = "vertical" === this.settings.axis,
             s = (this.settings.direction, 0);
+          this.settings.fullsize && (s = r ? window.scrollY : window.scrollX);
+          let readingAnchor = 0;
+          if (r && !this.isPaginated && this.settings.anchorRatio > 0) {
+            let scrollPosition = this.settings.fullsize
+              ? window.scrollY
+              : this.container.scrollTop;
+            // At the top of the book display() clamps to scrollTop 0, so the report side must not offset either.
+            scrollPosition > 0 &&
+              (readingAnchor = Math.round(i * this.settings.anchorRatio));
+          }
+          if (readingAnchor > 0) {
+            // located() takes start from the first view, so it must be the one containing the anchor line.
+            let anchorViewIndex = t.findIndex(
+              (view) => s + e.top - view.position().top + readingAnchor < view.height(),
+            );
+            anchorViewIndex > 0 && (t = t.slice(anchorViewIndex));
+          }
           return (
-            this.settings.fullsize && (s = r ? window.scrollY : window.scrollX),
             t.map((t) => {
               let o,
                 a,
@@ -2867,7 +2883,12 @@ export default `
                 href: u,
                 pages: m,
                 totalPages: l,
-                mapping: this.mapping.page(t.contents, t.section.cfiBase, o, a),
+                mapping: this.mapping.page(
+                  t.contents,
+                  t.section.cfiBase,
+                  o + readingAnchor,
+                  a,
+                ),
               };
             })
           );
@@ -6423,11 +6444,36 @@ export default `
             (this.scrollLeft = 0);
         }
         display(t, e) {
-          return r.a.prototype.display.call(this, t, e).then(
-            function () {
-              return this.fill();
-            }.bind(this),
-          );
+          return r.a.prototype.display
+            .call(this, t, e)
+            .then(
+              function () {
+                return this.fill();
+              }.bind(this),
+            )
+            .then(
+              function () {
+                if (
+                  this.isPaginated ||
+                  !(this.settings.anchorRatio > 0) ||
+                  "string" != typeof e ||
+                  !e.startsWith("epubcfi(") ||
+                  !(this.container.scrollTop > 0)
+                )
+                  return;
+                let containerBounds = this.container.getBoundingClientRect(),
+                  viewportHeight =
+                    containerBounds.height < window.innerHeight
+                      ? containerBounds.height
+                      : window.innerHeight;
+                // Must run after fill(): before it scrollTop can be ~0 and the shift would be clamped.
+                this.scrollBy(
+                  0,
+                  -Math.round(viewportHeight * this.settings.anchorRatio),
+                  !0,
+                );
+              }.bind(this),
+            );
         }
         fill(t) {
           var e = t || new n.defer();
