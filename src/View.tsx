@@ -10,8 +10,9 @@ import { WebView } from '@repo/react-native-webview';
 import type {
   ShouldStartLoadRequest,
   WebViewMessageEvent,
+  WebViewOpenWindowEvent,
   WebViewSingleTapEvent,
-} from '@repo/react-native-webview/lib/WebViewTypes';
+} from '@repo/react-native-webview/src/WebViewTypes';
 import { defaultTheme as initialTheme, ReaderContext } from './context';
 import type { Bookmark, ReaderProps } from './types';
 import { OpeningBook } from './utils/OpeningBook';
@@ -580,7 +581,7 @@ export function View({
             <OpeningBook
               width={width}
               height={height}
-              backgroundColor={theme?.body?.background || defaultTheme.body.background}
+              backgroundColor={theme?.body?.background || defaultTheme.body?.background}
             />
           )}
         </RNView>
@@ -606,7 +607,7 @@ export function View({
         allowFileAccessFromFileURLs
         allowFileAccess
         javaScriptCanOpenWindowsAutomatically
-        onOpenWindow={(event) => {
+        onOpenWindow={(event: WebViewOpenWindowEvent) => {
           event.preventDefault();
 
           if (onPressExternalLink) {
@@ -616,7 +617,7 @@ export function View({
         onShouldStartLoadWithRequest={handleOnShouldStartLoadWithRequest}
         style={{
           width,
-          backgroundColor: theme.body.background,
+          backgroundColor: theme.body?.background,
           height,
         }}
         onSingleTap={
