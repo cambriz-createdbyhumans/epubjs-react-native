@@ -1,3 +1,4 @@
+import type React from 'react';
 import { DimensionValue, ViewStyle } from 'react-native';
 
 export type ContentInsert = {
@@ -429,12 +430,12 @@ export interface ReaderProps {
    * Render when the book is loading
    * @returns {JSX.Element} JSX.Element
    */
-  renderLoadingFileComponent?: (props: LoadingFileProps) => JSX.Element;
+  renderLoadingFileComponent?: (props: LoadingFileProps) => React.JSX.Element;
   /**
    * Appears when the book is been rendering
    * @returns {JSX.Element} JSX.Element
    */
-  renderOpeningBookComponent?: () => JSX.Element;
+  renderOpeningBookComponent?: () => React.JSX.Element;
   openingBookComponentContainerStyle?: ViewStyle;
   /**
    * Enable text selection feature on the book.
