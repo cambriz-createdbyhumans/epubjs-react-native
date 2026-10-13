@@ -594,6 +594,7 @@ export function View({
         javaScriptEnabled
         originWhitelist={['*']}
         scrollEnabled={false}
+        scalesPageToFit={false}
         disableTextHighlightMenu={disableTextHighlightMenu}
         mixedContentMode="compatibility"
         onMessage={onMessage}
