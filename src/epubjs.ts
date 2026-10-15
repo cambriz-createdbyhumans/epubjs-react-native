@@ -4946,6 +4946,8 @@ export default `
         }
         display(t) {
           return (
+            (this.lastDisplayTarget = t),
+            (this.hasRequestedDisplay = !0),
             this.displaying && this.displaying.resolve(),
             this.q.enqueue(this._display, t)
           );
@@ -5001,9 +5003,11 @@ export default `
             { width: t.width, height: t.height },
             e,
           ),
-            this.location &&
-              this.location.start &&
-              this.display(e || this.location.start.cfi);
+            // A resize clears every view; with no location reported yet, re-display the last target or the page stays blank (https://github.com/futurepress/epub.js/issues/1384)
+            this.location && this.location.start
+              ? this.display(e || this.location.start.cfi)
+              : this.hasRequestedDisplay &&
+                this.display(e || this.lastDisplayTarget);
         }
         onOrientationChange(t) {
           this.emit(l.c.RENDITION.ORIENTATION_CHANGE, t);
