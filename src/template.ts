@@ -574,6 +574,8 @@ export default `
       var _lastEmittedCfi = null;
       var _pointerDown = false;
       var _pendingReadyPayload = null;
+      var _pendingReadyFallbackTimeout;
+      var PENDING_READY_FALLBACK_MS = 400;
 
       // Scroll lifecycle: a single flag + debounced timeout turn the raw
       // scroll firehose into an onScrollStarted / onScrollEnded edge pair.
@@ -593,6 +595,7 @@ export default `
       }
 
       function flushPendingReady() {
+        clearTimeout(_pendingReadyFallbackTimeout);
         if (!_pendingReadyPayload) return;
         var p = _pendingReadyPayload;
         _pendingReadyPayload = null;
@@ -621,6 +624,7 @@ export default `
           var hasSelection = Boolean(sel && sel.rangeCount > 0 && sel.toString().length > 0);
 
           if (hasSelection) {
+            clearTimeout(_pendingReadyFallbackTimeout);
             // If a committed selection is now mutating, the user is adjusting
             // (e.g. dragging a handle). Tell the consumer to hide selection UI.
             // Fresh drags don't emit pending — no committed selection yet.
@@ -880,6 +884,9 @@ export default `
             // Finger still down — wait for touchend to flush. Overwrite any
             // earlier pending payload; we only care about the latest.
             _pendingReadyPayload = payload;
+            // iOS withholds touchend from a touch that starts on a selection handle: https://github.com/WebKit/WebKit/commit/6ada1137f92bbf920f4c657cdb44251f3ea5aa41
+            clearTimeout(_pendingReadyFallbackTimeout);
+            _pendingReadyFallbackTimeout = setTimeout(flushPendingReady, PENDING_READY_FALLBACK_MS);
             return;
           }
           // Finger is up — emit immediately.
