@@ -390,12 +390,12 @@ export function View({
     }
 
     if (type === 'onNavigationLoaded') {
-      const { toc, landmarks } = parsedEvent;
+      const { toc, landmarks, navPath } = parsedEvent;
 
       setToc(toc);
       setLandmarks(landmarks);
 
-      return onNavigationLoaded({ toc, landmarks });
+      return onNavigationLoaded({ toc, landmarks, navPath });
     }
 
     if (type === 'onAddAnnotation') {
