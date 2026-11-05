@@ -364,14 +364,17 @@ export interface ReaderProps {
   /**
    * @param {Toc} toc
    * @param {Landmark[]} landmarks
+   * @param {string | null} navPath package-relative path of the navigation document, which landmark hrefs are relative to
    * @returns {void} void
    */
   onNavigationLoaded?: ({
     toc,
     landmarks,
+    navPath,
   }: {
     toc: Toc;
     landmarks: Landmark[];
+    navPath: string | null;
   }) => void;
   /**
    * Called when the book was pressed

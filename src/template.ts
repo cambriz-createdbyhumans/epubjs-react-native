@@ -803,7 +803,8 @@ export default `
             reactNativeWebview.postMessage(JSON.stringify({
               type: 'onNavigationLoaded',
               toc: item.toc,
-              landmarks: item.landmarks
+              landmarks: item.landmarks,
+              navPath: (book.packaging && book.packaging.navPath) || null
             }));
           });
         })
